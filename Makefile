@@ -1,6 +1,6 @@
 OBJS_PL_READLINE := pl_readline.o
 CC := gcc
-CFLAGS := -g -Og
+CFLAGS := -g -Og -I./include
 default: libplreadln.a
 	
 libplreadln.a: make_build $(OBJS_PL_READLINE)
