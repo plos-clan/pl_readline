@@ -1,4 +1,4 @@
-OBJS_PL_READLINE := pl_readline.o
+OBJS_PL_READLINE := plreadln.o
 CC := gcc
 CFLAGS := -g -Og -I./include
 default: libplreadln.a
