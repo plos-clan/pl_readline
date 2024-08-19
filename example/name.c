@@ -53,9 +53,11 @@ int getch(void) {
 }
 int main() {
   pl_readline_t n = pl_readline_init(getch, (void *)putchar);
-  printf("Enter your name: ");
-  fflush(stdout);
   char *buffer = malloc(255);
-  pl_readline(n, buffer, 255);
-  printf("Hello, %s!\n", buffer);
+  while (1) {
+    printf("Enter your name: ");
+    fflush(stdout);
+    pl_readline(n, buffer, 255);
+    printf("Hello, %s!\n", buffer);
+  }
 }
