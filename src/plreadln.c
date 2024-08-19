@@ -78,9 +78,9 @@ int pl_readline(_THIS, char *buffer, size_t len) {
       int n = length - p;
       if (n) {
         char buf[255] = {0};
-        for (int i = 0; i < n; i++) {
-          this->pl_readline_hal_putch(' '); // 覆盖
-        }
+        sprintf(buf, "\e[%dC\e[D ", n);
+        pl_readline_print(this, buf);
+
         sprintf(buf, "\e[%dD", n);
         pl_readline_print(this, buf);
         pl_readline_print(this, "\e[D");
