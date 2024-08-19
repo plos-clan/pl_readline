@@ -25,25 +25,44 @@ void pl_readline_uninit(_THIS) {
   list_free_with(this->history, free);
   free(this);
 }
+static void pl_readline_insert_char(char *str, char ch, int idx) {
+  memmove(str + idx + 1, str + idx, strlen(str) - idx);
+  str[idx] = ch;
+}
+static void pl_readline_delete_char(char *str, int idx) {
+  int len = strlen(str);
+  memmove(str + idx, str + idx + 1, len - idx);
+  str[len] = '\0';
+}
+
+void pl_readline_print(_THIS, char *str) {
+  while (*str) {
+    this->pl_readline_hal_putch(*str++);
+  }
+}
 int pl_readline(_THIS, char *buffer, size_t len) {
   int p = 0;
   while (true) {
+    // if(p >= len) continue;
     int ch = this->pl_readline_hal_getch();
     switch (ch) {
     case PL_READLINE_KEY_DOWN:
-      printf("\e[B");
+      // printf("\e[B");
       break;
     case PL_READLINE_KEY_UP:
-      printf("\e[A");
+      // printf("\e[A");
       break;
     case PL_READLINE_KEY_LEFT:
-      printf("\e[D");
+      pl_readline_print(this, "\e[D");
       break;
     case PL_READLINE_KEY_RIGHT:
-      printf("\e[C");
+      pl_readline_print(this, "\e[C");
       break;
+    case PL_READLINE_KEY_ENTER:
+      this->pl_readline_hal_putch('\n');
+      return PL_READLINE_SUCCESS;
     default:
-      printf("%c",ch);
+      this->pl_readline_hal_putch(ch);
       break;
     }
   }

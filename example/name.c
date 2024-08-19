@@ -1,6 +1,5 @@
 #include <pl_readline.h>
 #include <stdio.h>
-
 #include <termio.h>
 
 int getch(void) {
@@ -22,7 +21,7 @@ int getch(void) {
   if (tcsetattr(fd, TCSANOW, &tm_old) < 0) { //更改设置为最初的样子
     return -1;
   }
-  if(ch == 0x0d) {
+  if (ch == 0x0d) {
     return PL_READLINE_KEY_ENTER;
   }
   if (ch == 0x1b) {
@@ -30,10 +29,14 @@ int getch(void) {
     if (ch == 0x5b) {
       ch = getch();
       switch (ch) {
-      case 0x41: return PL_READLINE_KEY_UP;
-      case 0x42: return PL_READLINE_KEY_DOWN;
-      case 0x43: return PL_READLINE_KEY_RIGHT;
-      case 0x44: return PL_READLINE_KEY_LEFT;
+      case 0x41:
+        return PL_READLINE_KEY_UP;
+      case 0x42:
+        return PL_READLINE_KEY_DOWN;
+      case 0x43:
+        return PL_READLINE_KEY_RIGHT;
+      case 0x44:
+        return PL_READLINE_KEY_LEFT;
       default:
         return -1;
       }

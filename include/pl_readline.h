@@ -1,19 +1,19 @@
 #pragma once
-#include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #if __x86_64__
-  typedef signed long long isize;
-  typedef unsigned long long usize;
+typedef signed long long isize;
+typedef unsigned long long usize;
 #else
-  typedef signed long isize;
-  typedef unsigned long usize;
+typedef signed long isize;
+typedef unsigned long usize;
 #endif
 // ---------------------------------------
 
 #define auto __auto_type
-#  define LIST_IMPLEMENTATION
+#define LIST_IMPLEMENTATION
 
 /**
  *\struct ListNode
@@ -31,7 +31,7 @@ struct list {
 };
 
 #ifdef LIST_IMPLEMENTATION
-#  define extern static
+#define extern static
 #endif
 
 /**
@@ -140,14 +140,15 @@ extern size_t list_length(list_t list);
 extern void list_print(list_t list);
 
 #ifdef LIST_IMPLEMENTATION
-#  undef extern
+#undef extern
 #endif
 
 #ifdef LIST_IMPLEMENTATION
 
 static list_t list_alloc(void *data) {
   list_t node = (list_t)malloc(sizeof(*node));
-  if (node == NULL) return NULL;
+  if (node == NULL)
+    return NULL;
   node->data = data;
   node->prev = NULL;
   node->next = NULL;
@@ -175,7 +176,8 @@ static list_t list_free_with(list_t list, void (*free_data)(void *)) {
 
 static list_t list_append(list_t list, void *data) {
   list_t node = list_alloc(data);
-  if (node == NULL) return list;
+  if (node == NULL)
+    return list;
 
   if (list == NULL) {
     list = node;
@@ -185,7 +187,7 @@ static list_t list_append(list_t list, void *data) {
       current = current->next;
     }
     current->next = node;
-    node->prev    = current;
+    node->prev = current;
   }
 
   return list;
@@ -193,53 +195,66 @@ static list_t list_append(list_t list, void *data) {
 
 static list_t list_prepend(list_t list, void *data) {
   list_t node = list_alloc(data);
-  if (node == NULL) return list;
+  if (node == NULL)
+    return list;
 
   node->next = list;
-  if (list != NULL) list->prev = node;
+  if (list != NULL)
+    list->prev = node;
   list = node;
 
   return list;
 }
 
 static void *list_pop(list_t *list_p) {
-  if (list_p == NULL || *list_p == NULL) return NULL;
+  if (list_p == NULL || *list_p == NULL)
+    return NULL;
   auto list = list_tail(*list_p);
-  if (*list_p == list) *list_p = list->prev;
-  if (list->prev) list->prev->next = NULL;
+  if (*list_p == list)
+    *list_p = list->prev;
+  if (list->prev)
+    list->prev->next = NULL;
   auto data = list->data;
   free(list);
   return data;
 }
 
 static list_t list_head(list_t list) {
-  if (list == NULL) return NULL;
-  for (; list->prev; list = list->prev) {}
+  if (list == NULL)
+    return NULL;
+  for (; list->prev; list = list->prev) {
+  }
   return list;
 }
 
 static list_t list_tail(list_t list) {
-  if (list == NULL) return NULL;
-  for (; list->next; list = list->next) {}
+  if (list == NULL)
+    return NULL;
+  for (; list->next; list = list->next) {
+  }
   return list;
 }
 
 static list_t list_nth(list_t list, size_t n) {
-  if (list == NULL) return NULL;
+  if (list == NULL)
+    return NULL;
   list = list_head(list);
   for (size_t i = 0; i < n; i++) {
     list = list->next;
-    if (list == NULL) return NULL;
+    if (list == NULL)
+      return NULL;
   }
   return list;
 }
 
 static list_t list_nth_last(list_t list, size_t n) {
-  if (list == NULL) return NULL;
+  if (list == NULL)
+    return NULL;
   list = list_tail(list);
   for (size_t i = 0; i < n; i++) {
     list = list->prev;
-    if (list == NULL) return NULL;
+    if (list == NULL)
+      return NULL;
   }
   return list;
 }
@@ -247,18 +262,20 @@ static list_t list_nth_last(list_t list, size_t n) {
 static bool list_search(list_t list, void *data) {
   list_t current = list;
   while (current != NULL) {
-    if (current->data == data) return true;
+    if (current->data == data)
+      return true;
     current = current->next;
   }
   return false;
 }
 
 static list_t list_delete(list_t list, void *data) {
-  if (list == NULL) return NULL;
+  if (list == NULL)
+    return NULL;
 
   if (list->data == data) {
     list_t temp = list;
-    list        = list->next;
+    list = list->next;
     free(temp);
     return list;
   }
@@ -266,7 +283,8 @@ static list_t list_delete(list_t list, void *data) {
   for (list_t current = list->next; current; current = current->next) {
     if (current->data == data) {
       current->prev->next = current->next;
-      if (current->next != NULL) current->next->prev = current->prev;
+      if (current->next != NULL)
+        current->next->prev = current->prev;
       free(current);
       break;
     }
@@ -275,13 +293,16 @@ static list_t list_delete(list_t list, void *data) {
   return list;
 }
 
-static list_t list_delete_with(list_t list, void *data, void (*callback)(void *)) {
-  if (list == NULL) return NULL;
+static list_t list_delete_with(list_t list, void *data,
+                               void (*callback)(void *)) {
+  if (list == NULL)
+    return NULL;
 
   if (list->data == data) {
     list_t temp = list;
-    list        = list->next;
-    if (callback) callback(temp->data);
+    list = list->next;
+    if (callback)
+      callback(temp->data);
     free(temp);
     return list;
   }
@@ -289,8 +310,10 @@ static list_t list_delete_with(list_t list, void *data, void (*callback)(void *)
   for (list_t current = list->next; current; current = current->next) {
     if (current->data == data) {
       current->prev->next = current->next;
-      if (current->next != NULL) current->next->prev = current->prev;
-      if (callback) callback(current->data);
+      if (current->next != NULL)
+        current->next->prev = current->prev;
+      if (callback)
+        callback(current->data);
       free(current);
       break;
     }
@@ -300,41 +323,48 @@ static list_t list_delete_with(list_t list, void *data, void (*callback)(void *)
 }
 
 static list_t list_delete_node(list_t list, list_t node) {
-  if (list == NULL || node == NULL) return list;
+  if (list == NULL || node == NULL)
+    return list;
 
   if (list == node) {
     list_t temp = list;
-    list        = list->next;
+    list = list->next;
     free(temp);
     return list;
   }
 
   node->prev->next = node->next;
-  if (node->next != NULL) node->next->prev = node->prev;
+  if (node->next != NULL)
+    node->next->prev = node->prev;
   free(node);
   return list;
 }
 
-static list_t list_delete_node_with(list_t list, list_t node, void (*callback)(void *)) {
-  if (list == NULL || node == NULL) return list;
+static list_t list_delete_node_with(list_t list, list_t node,
+                                    void (*callback)(void *)) {
+  if (list == NULL || node == NULL)
+    return list;
 
   if (list == node) {
     list_t temp = list;
-    list        = list->next;
-    if (callback) callback(temp->data);
+    list = list->next;
+    if (callback)
+      callback(temp->data);
     free(temp);
     return list;
   }
 
   node->prev->next = node->next;
-  if (node->next != NULL) node->next->prev = node->prev;
-  if (callback) callback(node->data);
+  if (node->next != NULL)
+    node->next->prev = node->prev;
+  if (callback)
+    callback(node->data);
   free(node);
   return list;
 }
 
 static size_t list_length(list_t list) {
-  size_t count   = 0;
+  size_t count = 0;
   list_t current = list;
   while (current != NULL) {
     count++;
@@ -343,7 +373,7 @@ static size_t list_length(list_t list) {
   return count;
 }
 
-#  ifdef __libplos__
+#ifdef __libplos__
 static void list_print(list_t list) {
   list_t current = list;
   while (current != NULL) {
@@ -352,9 +382,9 @@ static void list_print(list_t list) {
   }
   printf("NULL\n");
 }
-#  endif
+#endif
 
-#  undef LIST_IMPLEMENTATION
+#undef LIST_IMPLEMENTATION
 #endif
 
 /**
@@ -385,7 +415,8 @@ static void list_print(list_t list) {
  */
 #define list_delete(list, data) ((list) = list_delete(list, data))
 
-#define list_delete_with(list, data, callback) ((list) = list_delete_with(list, data, callback))
+#define list_delete_with(list, data, callback)                                 \
+  ((list) = list_delete_with(list, data, callback))
 
 /**
  *\brief 删除链表中的节点
@@ -394,7 +425,7 @@ static void list_print(list_t list) {
  */
 #define list_delete_node(slist, node) ((slist) = list_delete_node(slist, node))
 
-#define list_delete_node_with(list, node, callback)                                                \
+#define list_delete_node_with(list, node, callback)                            \
   ((list) = list_delete_node_with(list, node, callback))
 
 /**
@@ -402,53 +433,54 @@ static void list_print(list_t list) {
  *\param[in] list 链表头指针
  *\param[in] node 用于迭代的节点指针变量
  */
-#define list_foreach(list, node) for (list_t node = (list); node; node = node->next)
+#define list_foreach(list, node)                                               \
+  for (list_t node = (list); node; node = node->next)
 
 /**
  *\brief 遍历链表中的节点并执行操作
  *\param[in] list 链表头指针
  *\param[in] node 用于迭代的节点指针变量
  */
-#define list_foreach_cnt(list, i, node, code)                                                      \
-  ({                                                                                               \
-    size_t i = 0;                                                                                  \
-    for (list_t node = (list); node; (node) = (node)->next, (i)++)                                 \
-      (code);                                                                                      \
+#define list_foreach_cnt(list, i, node, code)                                  \
+  ({                                                                           \
+    size_t i = 0;                                                              \
+    for (list_t node = (list); node; (node) = (node)->next, (i)++)             \
+      (code);                                                                  \
   })
 
-#define list_first_node(list, node, expr)                                                          \
-  ({                                                                                               \
-    list_t _match_ = NULL;                                                                         \
-    for (list_t node = (list); node; node = node->next) {                                          \
-      if ((expr)) {                                                                                \
-        _match_ = node;                                                                            \
-        break;                                                                                     \
-      }                                                                                            \
-    }                                                                                              \
-    _match_;                                                                                       \
+#define list_first_node(list, node, expr)                                      \
+  ({                                                                           \
+    list_t _match_ = NULL;                                                     \
+    for (list_t node = (list); node; node = node->next) {                      \
+      if ((expr)) {                                                            \
+        _match_ = node;                                                        \
+        break;                                                                 \
+      }                                                                        \
+    }                                                                          \
+    _match_;                                                                   \
   })
 
-#define list_first(list, _data_, expr)                                                             \
-  ({                                                                                               \
-    void *_match_ = NULL;                                                                          \
-    for (list_t node = (list); node; node = node->next) {                                          \
-      void *_data_ = node->data;                                                                   \
-      if ((expr)) {                                                                                \
-        _match_ = _data_;                                                                          \
-        break;                                                                                     \
-      }                                                                                            \
-    }                                                                                              \
-    _match_;                                                                                       \
+#define list_first(list, _data_, expr)                                         \
+  ({                                                                           \
+    void *_match_ = NULL;                                                      \
+    for (list_t node = (list); node; node = node->next) {                      \
+      void *_data_ = node->data;                                               \
+      if ((expr)) {                                                            \
+        _match_ = _data_;                                                      \
+        break;                                                                 \
+      }                                                                        \
+    }                                                                          \
+    _match_;                                                                   \
   })
 // --------------------------------------
-#define PL_READLINE_KEY_UP    0xff00
-#define PL_READLINE_KEY_DOWN  0xff01
-#define PL_READLINE_KEY_LEFT  0xff02
+#define PL_READLINE_KEY_UP 0xff00
+#define PL_READLINE_KEY_DOWN 0xff01
+#define PL_READLINE_KEY_LEFT 0xff02
 #define PL_READLINE_KEY_RIGHT 0xff03
 #define PL_READLINE_KEY_ENTER '\n'
-#define _THIS                 pl_readline_t this
-#define PL_READLINE_SUCCESS   0
-#define PL_READLINE_FAILED    -1
+#define _THIS pl_readline_t this
+#define PL_READLINE_SUCCESS 0
+#define PL_READLINE_FAILED -1
 
 typedef struct pl_readline_word {
   char *word;
@@ -461,17 +493,19 @@ typedef struct pl_readline_word {
   bool first;
 } pl_readline_word;
 
-
 typedef struct pl_readline_words {
   int len;
   pl_readline_word *words;
-} *pl_readline_words_t;
+} * pl_readline_words_t;
 
 typedef struct pl_readline {
   int (*pl_readline_hal_getch)();
   void (*pl_readline_hal_putch)(int ch);
+  void (*pl_readline_hal_start_cache)();
+  void (*pl_readline_hal_stop_cache)();
   list_t history;
-} *pl_readline_t;
+} * pl_readline_t;
 
-pl_readline_t pl_readline_init(int (*pl_readline_hal_getch)(),void (*pl_readline_hal_putch)(int ch));
-int pl_readline(_THIS,char *buffer,size_t len);
+pl_readline_t pl_readline_init(int (*pl_readline_hal_getch)(),
+                               void (*pl_readline_hal_putch)(int ch));
+int pl_readline(_THIS, char *buffer, size_t len);
