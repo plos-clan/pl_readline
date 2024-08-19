@@ -3,9 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 static int pl_readline_add_history(_THIS, char *line) {
-  list_prepend(this->history, strdup(line));
+  if (strlen(line))
+    list_prepend(this->history, strdup(line));
   return PL_READLINE_SUCCESS;
 }
 
@@ -55,6 +55,11 @@ static void pl_readline_reset(_THIS, int p, int len) {
     pl_readline_print(this, buf);
   }
 }
+static void pl_readline_to_the_end(_THIS, int n) {
+  char buf[255] = {0};
+  sprintf(buf, "\e[%dC", n);
+  pl_readline_print(this, buf);
+}
 int pl_readline(_THIS, char *buffer, size_t len) {
   int p = 0;
   int length = 0;         // 输入的字符数
@@ -62,12 +67,14 @@ int pl_readline(_THIS, char *buffer, size_t len) {
   memset(buffer, 0, len); // 清空缓冲区
   while (true) {
     if (length >= len) { // 输入的字符数超过最大长度
+      pl_readline_to_the_end(this, length - p);
       this->pl_readline_hal_putch('\n');
       buffer[length] = '\0';
       pl_readline_add_history(this, buffer);
       return PL_READLINE_SUCCESS;
     }
     int ch = this->pl_readline_hal_getch(); // 读取输入
+
     switch (ch) {
     case PL_READLINE_KEY_DOWN: {
       list_t node = list_nth(this->history, --history_idx);
@@ -135,6 +142,7 @@ int pl_readline(_THIS, char *buffer, size_t len) {
       }
       break;
     case PL_READLINE_KEY_ENTER:
+      pl_readline_to_the_end(this, length - p);
       this->pl_readline_hal_putch('\n');
       buffer[length] = '\0';
       pl_readline_add_history(this, buffer);
