@@ -1,5 +1,6 @@
 #include <pl_readline.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <termio.h>
 
 int getch(void) {
@@ -24,6 +25,12 @@ int getch(void) {
   if (ch == 0x0d) {
     return PL_READLINE_KEY_ENTER;
   }
+  if (ch == 0x7f) {
+    return PL_READLINE_KEY_BACKSPACE;
+  }
+  if (ch == 0x9) {
+    return PL_READLINE_KEY_TAB;
+  }
   if (ch == 0x1b) {
     ch = getch();
     if (ch == 0x5b) {
@@ -46,5 +53,9 @@ int getch(void) {
 }
 int main() {
   pl_readline_t n = pl_readline_init(getch, (void *)putchar);
-  pl_readline(n, NULL, 1);
+  printf("Enter your name: ");
+  fflush(stdout);
+  char *buffer = malloc(255);
+  pl_readline(n, buffer, 255);
+  printf("Hello, %s!\n", buffer);
 }

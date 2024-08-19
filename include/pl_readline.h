@@ -478,6 +478,8 @@ static void list_print(list_t list) {
 #define PL_READLINE_KEY_LEFT 0xff02
 #define PL_READLINE_KEY_RIGHT 0xff03
 #define PL_READLINE_KEY_ENTER '\n'
+#define PL_READLINE_KEY_TAB '\t'
+#define PL_READLINE_KEY_BACKSPACE '\b'
 #define _THIS pl_readline_t this
 #define PL_READLINE_SUCCESS 0
 #define PL_READLINE_FAILED -1
@@ -501,8 +503,8 @@ typedef struct pl_readline_words {
 typedef struct pl_readline {
   int (*pl_readline_hal_getch)();
   void (*pl_readline_hal_putch)(int ch);
-  void (*pl_readline_hal_start_cache)();
-  void (*pl_readline_hal_stop_cache)();
+  // void (*pl_readline_hal_start_cache)();
+  // void (*pl_readline_hal_stop_cache)();
   list_t history;
 } * pl_readline_t;
 

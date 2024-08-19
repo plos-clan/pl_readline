@@ -26,7 +26,8 @@ void pl_readline_uninit(_THIS) {
   free(this);
 }
 static void pl_readline_insert_char(char *str, char ch, int idx) {
-  memmove(str + idx + 1, str + idx, strlen(str) - idx);
+  int len = strlen(str);
+  memmove(str + idx + 1, str + idx, len - idx);
   str[idx] = ch;
 }
 static void pl_readline_delete_char(char *str, int idx) {
@@ -42,9 +43,14 @@ void pl_readline_print(_THIS, char *str) {
 }
 int pl_readline(_THIS, char *buffer, size_t len) {
   int p = 0;
+  int length = 0;         // 输入的字符数
+  memset(buffer, 0, len); // 清空缓冲区
   while (true) {
-    // if(p >= len) continue;
-    int ch = this->pl_readline_hal_getch();
+    if (length >= len) { // 输入的字符数超过最大长度
+      this->pl_readline_hal_putch('\n');
+      return PL_READLINE_SUCCESS;
+    }
+    int ch = this->pl_readline_hal_getch(); // 读取输入
     switch (ch) {
     case PL_READLINE_KEY_DOWN:
       // printf("\e[B");
@@ -53,17 +59,57 @@ int pl_readline(_THIS, char *buffer, size_t len) {
       // printf("\e[A");
       break;
     case PL_READLINE_KEY_LEFT:
+      if (!p) // 光标在最左边
+        continue;
+      p--;
       pl_readline_print(this, "\e[D");
       break;
     case PL_READLINE_KEY_RIGHT:
+      if (p == length) // 光标在最右边
+        continue;
+      p++;
       pl_readline_print(this, "\e[C");
+      break;
+    case PL_READLINE_KEY_BACKSPACE:
+      if (!p) // 光标在最左边
+        continue;
+      pl_readline_delete_char(buffer, --p);
+      length--;
+      int n = length - p;
+      if (n) {
+        char buf[255] = {0};
+        for (int i = 0; i < n; i++) {
+          this->pl_readline_hal_putch(' '); // 覆盖
+        }
+        sprintf(buf, "\e[%dD", n);
+        pl_readline_print(this, buf);
+        pl_readline_print(this, "\e[D");
+        pl_readline_print(this, buffer + p);
+        pl_readline_print(this, buf);
+
+      } else {
+        pl_readline_print(this, "\e[D \e[D");
+      }
       break;
     case PL_READLINE_KEY_ENTER:
       this->pl_readline_hal_putch('\n');
+      buffer[length] = '\0';
       return PL_READLINE_SUCCESS;
-    default:
-      this->pl_readline_hal_putch(ch);
+    default: {
+      pl_readline_insert_char(buffer, ch, p++);
+      length++;
+      int n = length - p;
+      if (n) {
+        char buf[255] = {0};
+        pl_readline_print(this, buffer + p - 1);
+        sprintf(buf, "\e[%dD", n);
+        pl_readline_print(this, buf);
+
+      } else {
+        this->pl_readline_hal_putch(ch);
+      }
       break;
+    }
     }
   }
   return PL_READLINE_SUCCESS;
