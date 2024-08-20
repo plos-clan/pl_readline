@@ -80,8 +80,11 @@ int main() {
 这样可以支持多行
 
 # PR
+
 本库支持的功能还不完整，欢迎PR。
+
 # issue
+
 如果有任何bug,请在issue中提出。
 **不接受新feature的issue，但接受PR**
 但如果是下面的问题，将不会答复：
