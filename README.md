@@ -86,7 +86,9 @@ int main() {
 # issue
 
 如果有任何bug,请在issue中提出。
+
 **不接受新feature的issue，但接受PR**
+
 但如果是下面的问题，将不会答复：
 - linux上无法多行。
 
