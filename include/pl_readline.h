@@ -503,11 +503,13 @@ typedef struct pl_readline_words {
 typedef struct pl_readline {
   int (*pl_readline_hal_getch)();
   void (*pl_readline_hal_putch)(int ch);
+  void (*pl_readline_hal_flush)();
   // void (*pl_readline_hal_start_cache)();
   // void (*pl_readline_hal_stop_cache)();
   list_t history;
 } * pl_readline_t;
 
 pl_readline_t pl_readline_init(int (*pl_readline_hal_getch)(),
-                               void (*pl_readline_hal_putch)(int ch));
-int pl_readline(_THIS, char *buffer, size_t len);
+                               void (*pl_readline_hal_putch)(int ch),
+                               void (*pl_readline_hal_flush)());
+int pl_readline(_THIS, char *prompt, char *buffer, size_t len);

@@ -10,13 +10,15 @@ static int pl_readline_add_history(_THIS, char *line) {
 }
 
 pl_readline_t pl_readline_init(int (*pl_readline_hal_getch)(),
-                               void (*pl_readline_hal_putch)(int ch)) {
+                               void (*pl_readline_hal_putch)(int ch),
+                               void (*pl_readline_hal_flush)()) {
   pl_readline_t plreadln = malloc(sizeof(struct pl_readline));
   if (!plreadln)
     return NULL;
   // 设置回调函数
   plreadln->pl_readline_hal_getch = pl_readline_hal_getch;
   plreadln->pl_readline_hal_putch = pl_readline_hal_putch;
+  plreadln->pl_readline_hal_flush = pl_readline_hal_flush;
   // 设置history链表
   plreadln->history = NULL;
   return plreadln;
@@ -60,11 +62,13 @@ static void pl_readline_to_the_end(_THIS, int n) {
   sprintf(buf, "\e[%dC", n);
   pl_readline_print(this, buf);
 }
-int pl_readline(_THIS, char *buffer, size_t len) {
+int pl_readline(_THIS, char *prompt, char *buffer, size_t len) {
   int p = 0;
   int length = 0;         // 输入的字符数
   int history_idx = -1;   // history的索引
   memset(buffer, 0, len); // 清空缓冲区
+  pl_readline_print(this, prompt);
+  this->pl_readline_hal_flush();
   while (true) {
     if (length >= len) { // 输入的字符数超过最大长度
       pl_readline_to_the_end(this, length - p);
