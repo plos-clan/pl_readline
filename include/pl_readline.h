@@ -483,6 +483,7 @@ static void list_print(list_t list) {
 #define _THIS pl_readline_t this
 #define PL_READLINE_SUCCESS 0
 #define PL_READLINE_FAILED -1
+#define PL_READLINE_NOT_FINISHED 1
 
 typedef struct pl_readline_word {
   char *word;
