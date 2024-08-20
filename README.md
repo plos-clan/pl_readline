@@ -1,6 +1,7 @@
 # Introduction
 一个简单的键盘输入库，计划支持上下左右方向键，tab补全
-# Example
+# Example for Linux
+**NOTE**: This example is for Linux only.
 ```c
 #include <stdio.h>
 #include <stdlib.h>
