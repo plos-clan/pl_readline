@@ -1,5 +1,7 @@
+#include <assert.h>
 #include <pl_readline.h>
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -62,13 +64,39 @@ static void pl_readline_to_the_end(_THIS, int n) {
   sprintf(buf, "\e[%dC", n);
   pl_readline_print(this, buf);
 }
+// 处理向上向下键
+static void pl_readline_handle_key_down_up(_THIS, int *history_idx,
+                                           char *buffer, int *p, int *length,
+                                           size_t len, int n) {
+  list_t node = list_nth(this->history, *history_idx);
+  if (!node) {
+    (*history_idx) += n;
+    return;
+  }
+  pl_readline_reset(this, *p, *length);
+  this->pl_readline_hal_flush();
+  *p = 0;
+  *length = 0;
+  memset(buffer, 0, len); // 清空缓冲区
+  strcpy(buffer, node->data);
+  pl_readline_print(this, buffer);
+  *length = strlen(buffer);
+  *p = *length;
+}
+// 处理向上键
+
 int pl_readline(_THIS, char *prompt, char *buffer, size_t len) {
   int p = 0;
-  int length = 0;         // 输入的字符数
-  int history_idx = -1;   // history的索引
+  int length = 0;       // 输入的字符数
+  int history_idx = -1; // history的索引
+  // 为了实现自动补全，需要将输入的字符保存到缓冲区中
+  char *input_buf = malloc(len + 1);
+  assert(input_buf);
+
   memset(buffer, 0, len); // 清空缓冲区
   pl_readline_print(this, prompt);
-  this->pl_readline_hal_flush();
+  this->pl_readline_hal_flush(); // 刷新输出缓冲区
+  // 循环读取输入
   while (true) {
     if (length >= len) { // 输入的字符数超过最大长度
       pl_readline_to_the_end(this, length - p);
@@ -80,36 +108,15 @@ int pl_readline(_THIS, char *prompt, char *buffer, size_t len) {
     int ch = this->pl_readline_hal_getch(); // 读取输入
 
     switch (ch) {
-    case PL_READLINE_KEY_DOWN: {
-      list_t node = list_nth(this->history, --history_idx);
-      if (!node) {
-        history_idx++;
-        continue;
-      }
-      pl_readline_reset(this, p, length);
-      p = 0;
-      length = 0;
-      memset(buffer, 0, len); // 清空缓冲区
-      strcpy(buffer, node->data);
-      pl_readline_print(this, buffer);
-      length = strlen(buffer);
-      p = length;
+    case PL_READLINE_KEY_DOWN:
+      history_idx--;
+      pl_readline_handle_key_down_up(this, &history_idx, buffer, &p, &length,
+                                     len, 1); // n = 1是为了的失败的时候还原
       break;
-    }
     case PL_READLINE_KEY_UP: {
-      list_t node = list_nth(this->history, ++history_idx);
-      if (!node) {
-        history_idx--;
-        continue;
-      }
-      pl_readline_reset(this, p, length);
-      p = 0;
-      length = 0;
-      memset(buffer, 0, len); // 清空缓冲区
-      strcpy(buffer, node->data);
-      pl_readline_print(this, buffer);
-      length = strlen(buffer);
-      p = length;
+      history_idx++;
+      pl_readline_handle_key_down_up(this, &history_idx, buffer, &p, &length,
+                                     len, -1); // n = -1是为了的失败的时候还原
       break;
     }
     case PL_READLINE_KEY_LEFT:
@@ -151,6 +158,19 @@ int pl_readline(_THIS, char *prompt, char *buffer, size_t len) {
       buffer[length] = '\0';
       pl_readline_add_history(this, buffer);
       return PL_READLINE_SUCCESS;
+    case PL_READLINE_KEY_TAB: { // 自动补全
+      pl_readline_print(this, "\n");
+      pl_readline_print(this, prompt);
+      pl_readline_print(this, buffer);
+      int n = length - p;
+      char buf[255] = {0};
+      if (n) {
+        sprintf(buf, "\e[%dD", n);
+        pl_readline_print(this, buf);
+      }
+      this->pl_readline_hal_flush();
+      break;
+    }
     default: {
       pl_readline_insert_char(buffer, ch, p++);
       length++;
