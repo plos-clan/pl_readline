@@ -96,6 +96,11 @@ static void pl_readline_handle_key_down_up(_THIS, pl_readline_runtime *rt,
   pl_readline_print(this, rt->buffer); // 打印历史记录
   rt->length = strlen(rt->buffer);     // 更新缓冲区长度
   rt->p = rt->length;
+
+  memset(rt->input_buf, 0, rt->len); // 清空输入缓冲区
+  rt->input_buf_ptr = 0;             // 输入缓冲区指针置0
+  strcpy(rt->input_buf, node->data); // 复制历史记录到输入缓冲区
+  rt->input_buf_ptr = strlen(rt->input_buf); // 更新输入缓冲区指针
 }
 // 处理输入的字符
 static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
@@ -122,18 +127,80 @@ static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
       return PL_READLINE_NOT_FINISHED;
     rt->p--;
     pl_readline_print(this, "\e[D");
+    if (rt->buffer[rt->p] == ' ') {
+      memset(rt->input_buf, 0, rt->len);
+      // 光标移动到前一个空格
+      int i = rt->p;
+      while (i && rt->buffer[i - 1] != ' ') {
+        i--;
+      }
+      rt->input_buf_ptr = 0;
+      // 从i开始复制到rt->input_buf，直到遇到空格
+      int len = rt->p - i;
+      while (i < rt->p && rt->buffer[i] != ' ') {
+        rt->input_buf[rt->input_buf_ptr++] = rt->buffer[i];
+        i++;
+      }
+      // 字符串结束符号
+      rt->input_buf[rt->input_buf_ptr] = '\0';
+    } else {
+      rt->input_buf_ptr--;
+    }
     break;
   case PL_READLINE_KEY_RIGHT:
     if (rt->p == rt->length) // 光标在最右边
       return PL_READLINE_NOT_FINISHED;
     rt->p++;
     pl_readline_print(this, "\e[C");
+    if (rt->buffer[rt->p - 1] == ' ') {
+      memset(rt->input_buf, 0, rt->len);
+      // 光标移动到前一个空格
+      int i = rt->p;
+      int j = i;
+      while (i < rt->length && rt->buffer[i + 1] != ' ') {
+        i++;
+      }
+      rt->input_buf_ptr = 0;
+      // 从i开始复制到rt->input_buf，直到遇到空格
+      int len = i - j;
+      while (j < i && rt->buffer[i] != ' ') {
+        rt->input_buf[rt->input_buf_ptr++] = rt->buffer[j];
+        j++;
+      }
+      // 字符串结束符号
+      rt->input_buf[rt->input_buf_ptr] = '\0';
+      rt->input_buf_ptr = 0;
+    } else {
+      rt->input_buf_ptr++;
+    }
     break;
   case PL_READLINE_KEY_BACKSPACE:
     if (!rt->p) // 光标在最左边
       return PL_READLINE_NOT_FINISHED;
-    pl_readline_delete_char(rt->buffer, --rt->p);
+    --rt->p;
+    if (rt->buffer[rt->p] == ' ') {
+      memset(rt->input_buf, 0, rt->len);
+      // 光标移动到前一个空格
+      int i = rt->p;
+      while (i && rt->buffer[i - 1] != ' ') {
+        i--;
+      }
+      rt->input_buf_ptr = 0;
+      // 从i开始复制到rt->input_buf，直到遇到空格
+      while (i < rt->p && rt->buffer[i] != ' ') {
+        rt->input_buf[rt->input_buf_ptr++] = rt->buffer[i];
+        i++;
+      }
+      // 字符串结束符号
+      rt->input_buf[rt->input_buf_ptr] = '\0';
+    } else {
+      if (rt->input_buf_ptr)
+        pl_readline_delete_char(rt->input_buf, --rt->input_buf_ptr);
+    }
+    pl_readline_delete_char(rt->buffer, rt->p);
+
     rt->length--;
+
     int n = rt->length - rt->p;
     if (n) {
       char buf[255] = {0};
@@ -158,6 +225,8 @@ static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
     return PL_READLINE_SUCCESS;
   case PL_READLINE_KEY_TAB: { // 自动补全
     pl_readline_print(this, "\n");
+    pl_readline_print(this, rt->input_buf);
+    pl_readline_print(this, "\n");
     pl_readline_print(this, rt->prompt);
     pl_readline_print(this, rt->buffer);
     int n = rt->length - rt->p;
@@ -170,8 +239,13 @@ static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
     break;
   }
   case ' ': {
+    memset(rt->input_buf, 0, rt->len);
+    rt->input_buf_ptr = 0;
+    goto handle;
   }
   default: {
+    pl_readline_insert_char(rt->input_buf, ch, rt->input_buf_ptr++);
+  handle:
     pl_readline_insert_char(rt->buffer, ch, rt->p++);
     rt->length++;
     int n = rt->length - rt->p;
@@ -197,6 +271,7 @@ int pl_readline(_THIS, char *prompt, char *buffer, size_t len) {
   // int history_idx = -1; // history的索引
   // 为了实现自动补全，需要将输入的字符保存到缓冲区中
   char *input_buf = malloc(len + 1);
+  memset(input_buf, 0, len + 1);
   int input_buf_ptr = 0;
   assert(input_buf);
   pl_readline_runtime rt = {buffer, 0, 0, -1, prompt, len, input_buf, 0};
