@@ -1,4 +1,14 @@
-// plreadln_wordmk: pl_readline word maker
+//
+// This file is part of pl_readline.
+// pl_readline is free software: you can redistribute it and/or modify
+// it under the terms of MIT license.
+// See file LICENSE or https://opensource.org/licenses/MIT for full license
+// details.
+//
+// Copyright (c) 2024 min0911_ https://github.com/min0911Y
+//
+
+// plreadln_wordmk.c: pl_readline word maker
 #include <assert.h>
 #include <pl_readline.h>
 #include <stdio.h>
