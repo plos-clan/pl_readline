@@ -99,7 +99,17 @@ static void pl_readline_handle_key_down_up(_THIS, pl_readline_runtime *rt,
 
   memset(rt->input_buf, 0, rt->len); // 清空输入缓冲区
   rt->input_buf_ptr = 0;             // 输入缓冲区指针置0
-  strcpy(rt->input_buf, node->data); // 复制历史记录到输入缓冲区
+  // strcpy(rt->input_buf, node->data); // 复制历史记录到输入缓冲区
+  char *p = node->data;
+  while (*p) {
+    if (*p == ' ') {
+      rt->input_buf_ptr = 0;
+      p++;
+      continue;
+    }
+    rt->input_buf[rt->input_buf_ptr++] = *p++;
+  }
+  rt->input_buf[rt->input_buf_ptr] = '\0';
   rt->input_buf_ptr = strlen(rt->input_buf); // 更新输入缓冲区指针
 }
 // 处理输入的字符
@@ -163,7 +173,7 @@ static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
       rt->input_buf_ptr = 0;
       // 从i开始复制到rt->input_buf，直到遇到空格
       int len = i - j;
-      while (j < i && rt->buffer[i] != ' ') {
+      while (j <= i && rt->buffer[i] != ' ') {
         rt->input_buf[rt->input_buf_ptr++] = rt->buffer[j];
         j++;
       }
