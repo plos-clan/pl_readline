@@ -498,6 +498,7 @@ typedef struct pl_readline_word {
 
 typedef struct pl_readline_words {
   int len;
+  int max_len;
   pl_readline_word *words;
 } * pl_readline_words_t;
 
@@ -507,10 +508,13 @@ typedef struct pl_readline {
   void (*pl_readline_hal_flush)();
   // void (*pl_readline_hal_start_cache)();
   // void (*pl_readline_hal_stop_cache)();
+  pl_readline_words_t words;
   list_t history;
 } * pl_readline_t;
 
+pl_readline_words_t pl_readline_word_maker_init();
 pl_readline_t pl_readline_init(int (*pl_readline_hal_getch)(),
                                void (*pl_readline_hal_putch)(int ch),
-                               void (*pl_readline_hal_flush)());
+                               void (*pl_readline_hal_flush)(),
+                               pl_readline_words_t words);
 int pl_readline(_THIS, char *prompt, char *buffer, size_t len);

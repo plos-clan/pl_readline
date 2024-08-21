@@ -13,7 +13,8 @@ static int pl_readline_add_history(_THIS, char *line) {
 
 pl_readline_t pl_readline_init(int (*pl_readline_hal_getch)(),
                                void (*pl_readline_hal_putch)(int ch),
-                               void (*pl_readline_hal_flush)()) {
+                               void (*pl_readline_hal_flush)(),
+                               pl_readline_words_t words) {
   pl_readline_t plreadln = malloc(sizeof(struct pl_readline));
   if (!plreadln)
     return NULL;
@@ -23,6 +24,8 @@ pl_readline_t pl_readline_init(int (*pl_readline_hal_getch)(),
   plreadln->pl_readline_hal_flush = pl_readline_hal_flush;
   // 设置history链表
   plreadln->history = NULL;
+  // 设置words
+  plreadln->words = words;
   return plreadln;
 }
 void pl_readline_uninit(_THIS) {
@@ -86,7 +89,8 @@ static void pl_readline_handle_key_down_up(_THIS, int *history_idx,
 // 处理输入的字符
 static int pl_readline_handle_key(_THIS, int ch, char *buffer, int *p,
                                   int *length, int *history_idx, char *prompt,
-                                  size_t len) {
+                                  size_t len, char *input_buf,
+                                  int *input_buf_ptr) {
   if (*length >= len) { // 输入的字符数超过最大长度
     pl_readline_to_the_end(this, *length - *p);
     this->pl_readline_hal_putch('\n');
@@ -158,6 +162,8 @@ static int pl_readline_handle_key(_THIS, int ch, char *buffer, int *p,
     this->pl_readline_hal_flush();
     break;
   }
+  case ' ': {
+  }
   default: {
     pl_readline_insert_char(buffer, ch, (*p)++);
     (*length)++;
@@ -184,6 +190,7 @@ int pl_readline(_THIS, char *prompt, char *buffer, size_t len) {
   int history_idx = -1; // history的索引
   // 为了实现自动补全，需要将输入的字符保存到缓冲区中
   char *input_buf = malloc(len + 1);
+  int input_buf_ptr = 0;
   assert(input_buf);
   // 清空缓冲区
   memset(input_buf, 0, len + 1);
@@ -194,11 +201,13 @@ int pl_readline(_THIS, char *prompt, char *buffer, size_t len) {
   // 循环读取输入
   while (true) {
     int ch = this->pl_readline_hal_getch(); // 读取输入
-    int status = pl_readline_handle_key(this, ch, buffer, &p, &length,
-                                        &history_idx, prompt, len);
+    int status =
+        pl_readline_handle_key(this, ch, buffer, &p, &length, &history_idx,
+                               prompt, len, input_buf, &input_buf_ptr);
     if (status == PL_READLINE_SUCCESS) {
       break;
     }
   }
+  free(input_buf);
   return PL_READLINE_SUCCESS;
 }

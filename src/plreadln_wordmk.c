@@ -1,8 +1,40 @@
 // plreadln_wordmk: pl_readline word maker
-#include <stdio.h>
+#include <assert.h>
 #include <pl_readline.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-
-
-int pl_readline_word_maker_init() {}
-int pl_readline_word_maker_add() {}
+pl_readline_words_t pl_readline_word_maker_init() {
+  pl_readline_words_t words = malloc(sizeof(struct pl_readline_words));
+  words->len = 0;      // initial length
+  words->max_len = 16; // initial max length
+  words->words = malloc(words->max_len * sizeof(char *));
+  assert(words->words != NULL);
+  return words;
+}
+void pl_readline_word_maker_destroy(pl_readline_words_t words) {
+  for (int i = 0; i < words->len; i++) {
+    free(words->words[i].word);
+  }
+  free(words->words);
+  free(words);
+}
+int pl_readline_word_maker_add(char *word, pl_readline_words_t words,
+                               bool is_first) {
+  if (words->len >= words->max_len) {
+    words->max_len *= 2;
+    words->words = realloc(words->words, words->max_len * sizeof(char *));
+    assert(words->words != NULL);
+  }
+  words->words[words->len].first = is_first;
+  words->words[words->len].word = strdup(word);
+  words->len++;
+  return 0;
+}
+void pl_readline_word_maker_clear(pl_readline_words_t words) {
+  for (int i = 0; i < words->len; i++) {
+    free(words->words[i].word);
+  }
+  words->len = 0;
+}

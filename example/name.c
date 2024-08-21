@@ -53,7 +53,8 @@ int getch(void) {
 }
 void flush() { fflush(stdout); }
 int main() {
-  pl_readline_t n = pl_readline_init(getch, (void *)putchar, flush);
+  pl_readline_words_t words = pl_readline_word_maker_init();
+  pl_readline_t n = pl_readline_init(getch, (void *)putchar, flush, words);
   char *buffer = malloc(255);
   while (1) {
     pl_readline(n, "input: ", buffer, 255);
