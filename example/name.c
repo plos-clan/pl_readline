@@ -52,9 +52,18 @@ int getch(void) {
   return ch;
 }
 void flush() { fflush(stdout); }
+void handle_tab(char *buf, pl_readline_words_t words) {
+  pl_readline_word_maker_add("hello", words, false);
+  pl_readline_word_maker_add("world", words, false);
+  pl_readline_word_maker_add("foo", words, false);
+  pl_readline_word_maker_add("bar", words, false);
+  pl_readline_word_maker_add("baz", words, false);
+  pl_readline_word_maker_add("qux", words, false);
+  pl_readline_word_maker_add("helloworld", words, false);
+}
 int main() {
   pl_readline_words_t words = pl_readline_word_maker_init();
-  pl_readline_t n = pl_readline_init(getch, (void *)putchar, flush, words);
+  pl_readline_t n = pl_readline_init(getch, (void *)putchar, flush, handle_tab);
   char *buffer = malloc(255);
   while (1) {
     pl_readline(n, "input: ", buffer, 255);

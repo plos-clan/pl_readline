@@ -23,10 +23,10 @@ static int pl_readline_add_history(_THIS, char *line) {
   return PL_READLINE_SUCCESS;
 }
 
-pl_readline_t pl_readline_init(int (*pl_readline_hal_getch)(),
-                               void (*pl_readline_hal_putch)(int ch),
-                               void (*pl_readline_hal_flush)(),
-                               pl_readline_words_t words) {
+pl_readline_t pl_readline_init(
+    int (*pl_readline_hal_getch)(), void (*pl_readline_hal_putch)(int ch),
+    void (*pl_readline_hal_flush)(),
+    void (*pl_readline_get_words)(char *buf, pl_readline_words_t words)) {
   pl_readline_t plreadln = malloc(sizeof(struct pl_readline));
   if (!plreadln)
     return NULL;
@@ -34,10 +34,9 @@ pl_readline_t pl_readline_init(int (*pl_readline_hal_getch)(),
   plreadln->pl_readline_hal_getch = pl_readline_hal_getch;
   plreadln->pl_readline_hal_putch = pl_readline_hal_putch;
   plreadln->pl_readline_hal_flush = pl_readline_hal_flush;
+  plreadln->pl_readline_get_words = pl_readline_get_words;
   // 设置history链表
   plreadln->history = NULL;
-  // 设置words
-  plreadln->words = words;
   return plreadln;
 }
 void pl_readline_uninit(_THIS) {
@@ -131,6 +130,10 @@ void pl_readline_insert_char_and_view(_THIS, char ch, pl_readline_runtime *rt) {
 static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
   if (ch != PL_READLINE_KEY_TAB) {
     rt->intellisense_mode = false;
+    if (rt->intellisense_word) {
+      free(rt->intellisense_word);
+      rt->intellisense_word = NULL;
+    }
   }
   if (rt->length >= rt->len) { // 输入的字符数超过最大长度
     pl_readline_to_the_end(this, rt->length - rt->p);
@@ -253,11 +256,11 @@ static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
     return PL_READLINE_SUCCESS;
   case PL_READLINE_KEY_TAB: { // 自动补全
     pl_readline_words_t words = pl_readline_word_maker_init();
-    pl_readline_word_maker_add("hello", words, false);
     pl_readline_word word_seletion = pl_readline_intellisense(this, rt, words);
     if (word_seletion.word) {
-      // pl_readline_print(this, "\n");
-      // pl_readline_print(this, rt->input_buf);
+      pl_readline_intellisense_insert(this, rt, word_seletion);
+      this->pl_readline_hal_flush();
+    } else if (word_seletion.first) {
       pl_readline_print(this, "\n");
       pl_readline_print(this, rt->prompt);
       pl_readline_print(this, rt->buffer);
@@ -267,10 +270,9 @@ static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
         sprintf(buf, "\e[%dD", n);
         pl_readline_print(this, buf);
       }
-
       this->pl_readline_hal_flush();
     }
-
+    pl_readline_word_maker_destroy(words);
     break;
   }
   case ' ': {
@@ -295,7 +297,8 @@ int pl_readline(_THIS, char *prompt, char *buffer, size_t len) {
   memset(input_buf, 0, len + 1);
   int input_buf_ptr = 0;
   assert(input_buf);
-  pl_readline_runtime rt = {buffer, 0, 0, -1, prompt, len, input_buf, 0, false};
+  pl_readline_runtime rt = {buffer, 0,         0, -1,    prompt,
+                            len,    input_buf, 0, false, NULL};
 
   // 清空缓冲区
   memset(input_buf, 0, len + 1);
@@ -312,5 +315,8 @@ int pl_readline(_THIS, char *prompt, char *buffer, size_t len) {
     }
   }
   free(input_buf);
+  if (rt.intellisense_word) {
+    free(rt.intellisense_word);
+  }
   return PL_READLINE_SUCCESS;
 }

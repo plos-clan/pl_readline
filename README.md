@@ -68,7 +68,7 @@ int main() {
 ```
 # feature (TODO and final)
 - [x] 支持上下左右方向键
-- [ ] 支持tab补全
+- [x] 支持tab补全
 
 # why to write pl_readline?
 因为我不想依赖于系统的readline库，而是自己实现一个简单的键盘输入库。在写一个裸机程序时，用这个库可以节省很多时间。当然，你也可以用这个库来为你的操作系统实现shell,因为这个库是以MIT协议发布的。

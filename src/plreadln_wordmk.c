@@ -25,7 +25,8 @@ pl_readline_words_t pl_readline_word_maker_init() {
 }
 void pl_readline_word_maker_destroy(pl_readline_words_t words) {
   for (int i = 0; i < words->len; i++) {
-    free(words->words[i].word);
+    char *p = words->words[i].word;
+    free(p);
   }
   free(words->words);
   free(words);
