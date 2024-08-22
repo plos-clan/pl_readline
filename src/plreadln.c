@@ -129,6 +129,9 @@ void pl_readline_insert_char_and_view(_THIS, char ch, pl_readline_runtime *rt) {
 }
 // 处理输入的字符
 static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
+  if (ch != PL_READLINE_KEY_TAB) {
+    rt->intellisense_mode = false;
+  }
   if (rt->length >= rt->len) { // 输入的字符数超过最大长度
     pl_readline_to_the_end(this, rt->length - rt->p);
     this->pl_readline_hal_putch('\n');
@@ -249,20 +252,25 @@ static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
     pl_readline_add_history(this, rt->buffer);
     return PL_READLINE_SUCCESS;
   case PL_READLINE_KEY_TAB: { // 自动补全
-    pl_readline_print(this, "\n");
-    pl_readline_print(this, rt->input_buf);
-    pl_readline_intellisense(this, rt, NULL);
-    pl_readline_print(this, "\n");
-    pl_readline_print(this, rt->prompt);
-    pl_readline_print(this, rt->buffer);
-    int n = rt->length - rt->p;
-    char buf[255] = {0};
-    if (n) {
-      sprintf(buf, "\e[%dD", n);
-      pl_readline_print(this, buf);
+    pl_readline_words_t words = pl_readline_word_maker_init();
+    pl_readline_word_maker_add("hello", words, false);
+    pl_readline_word word_seletion = pl_readline_intellisense(this, rt, words);
+    if (word_seletion.word) {
+      // pl_readline_print(this, "\n");
+      // pl_readline_print(this, rt->input_buf);
+      pl_readline_print(this, "\n");
+      pl_readline_print(this, rt->prompt);
+      pl_readline_print(this, rt->buffer);
+      int n = rt->length - rt->p;
+      char buf[255] = {0};
+      if (n) {
+        sprintf(buf, "\e[%dD", n);
+        pl_readline_print(this, buf);
+      }
+
+      this->pl_readline_hal_flush();
     }
 
-    this->pl_readline_hal_flush();
     break;
   }
   case ' ': {
@@ -287,7 +295,7 @@ int pl_readline(_THIS, char *prompt, char *buffer, size_t len) {
   memset(input_buf, 0, len + 1);
   int input_buf_ptr = 0;
   assert(input_buf);
-  pl_readline_runtime rt = {buffer, 0, 0, -1, prompt, len, input_buf, 0};
+  pl_readline_runtime rt = {buffer, 0, 0, -1, prompt, len, input_buf, 0, false};
 
   // 清空缓冲区
   memset(input_buf, 0, len + 1);

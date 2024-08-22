@@ -510,14 +510,15 @@ typedef struct pl_readline {
   list_t history;                        // 历史记录列表
 } * pl_readline_t;
 typedef struct pl_readline_runtime {
-  char *buffer;      // 输入缓冲区
-  int p;             // 输入缓冲区指针
-  int length;        // 输入缓冲区长度（已经输入的字符数）
-  int history_idx;   // 历史记录指针
-  char *prompt;      // 提示符
-  size_t len;        // 缓冲区最大长度
-  char *input_buf;   // 输入缓冲区（补全的前缀）
-  int input_buf_ptr; // 输入缓冲区（补全的前缀）指针
+  char *buffer;           // 输入缓冲区
+  int p;                  // 输入缓冲区指针
+  int length;             // 输入缓冲区长度（已经输入的字符数）
+  int history_idx;        // 历史记录指针
+  char *prompt;           // 提示符
+  size_t len;             // 缓冲区最大长度
+  char *input_buf;        // 输入缓冲区（补全的前缀）
+  int input_buf_ptr;      // 输入缓冲区（补全的前缀）指针
+  bool intellisense_mode; // 智能补全模式
 } pl_readline_runtime;
 
 pl_readline_words_t pl_readline_word_maker_init();
@@ -530,3 +531,6 @@ pl_readline_word pl_readline_intellisense(_THIS, pl_readline_runtime *rt,
                                           pl_readline_words_t words);
 void pl_readline_insert_char_and_view(_THIS, char ch, pl_readline_runtime *rt);
 void pl_readline_insert_char(char *str, char ch, int idx);
+int pl_readline_word_maker_add(char *word, pl_readline_words_t words,
+                               bool is_first);
+void pl_readline_print(_THIS, char *str);
