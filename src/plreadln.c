@@ -44,7 +44,7 @@ void pl_readline_uninit(_THIS) {
   list_free_with(this->history, free);
   free(this);
 }
-static void pl_readline_insert_char(char *str, char ch, int idx) {
+void pl_readline_insert_char(char *str, char ch, int idx) {
   int len = strlen(str);
   memmove(str + idx + 1, str + idx, len - idx);
   str[idx] = ch;
@@ -111,6 +111,21 @@ static void pl_readline_handle_key_down_up(_THIS, pl_readline_runtime *rt,
   }
   rt->input_buf[rt->input_buf_ptr] = '\0';
   rt->input_buf_ptr = strlen(rt->input_buf); // 更新输入缓冲区指针
+}
+
+void pl_readline_insert_char_and_view(_THIS, char ch, pl_readline_runtime *rt) {
+  pl_readline_insert_char(rt->buffer, ch, rt->p++);
+  rt->length++;
+  int n = rt->length - rt->p;
+  if (n) {
+    char buf[255] = {0};
+    pl_readline_print(this, rt->buffer + rt->p - 1);
+    sprintf(buf, "\e[%dD", n);
+    pl_readline_print(this, buf);
+
+  } else {
+    this->pl_readline_hal_putch(ch);
+  }
 }
 // 处理输入的字符
 static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
@@ -236,6 +251,7 @@ static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
   case PL_READLINE_KEY_TAB: { // 自动补全
     pl_readline_print(this, "\n");
     pl_readline_print(this, rt->input_buf);
+    pl_readline_intellisense(this, rt, NULL);
     pl_readline_print(this, "\n");
     pl_readline_print(this, rt->prompt);
     pl_readline_print(this, rt->buffer);
@@ -245,6 +261,7 @@ static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
       sprintf(buf, "\e[%dD", n);
       pl_readline_print(this, buf);
     }
+
     this->pl_readline_hal_flush();
     break;
   }
@@ -256,18 +273,7 @@ static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
   default: {
     pl_readline_insert_char(rt->input_buf, ch, rt->input_buf_ptr++);
   handle:
-    pl_readline_insert_char(rt->buffer, ch, rt->p++);
-    rt->length++;
-    int n = rt->length - rt->p;
-    if (n) {
-      char buf[255] = {0};
-      pl_readline_print(this, rt->buffer + rt->p - 1);
-      sprintf(buf, "\e[%dD", n);
-      pl_readline_print(this, buf);
-
-    } else {
-      this->pl_readline_hal_putch(ch);
-    }
+    pl_readline_insert_char_and_view(this, ch, rt);
     break;
   }
   }
@@ -276,9 +282,6 @@ static int pl_readline_handle_key(_THIS, int ch, pl_readline_runtime *rt) {
 
 // 主体函数
 int pl_readline(_THIS, char *prompt, char *buffer, size_t len) {
-  // int p = 0;
-  // int length = 0;       // 输入的字符数
-  // int history_idx = -1; // history的索引
   // 为了实现自动补全，需要将输入的字符保存到缓冲区中
   char *input_buf = malloc(len + 1);
   memset(input_buf, 0, len + 1);

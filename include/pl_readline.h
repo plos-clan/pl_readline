@@ -526,3 +526,7 @@ pl_readline_t pl_readline_init(int (*pl_readline_hal_getch)(),
                                void (*pl_readline_hal_flush)(),
                                pl_readline_words_t words);
 int pl_readline(_THIS, char *prompt, char *buffer, size_t len);
+pl_readline_word pl_readline_intellisense(_THIS, pl_readline_runtime *rt,
+                                          pl_readline_words_t words);
+void pl_readline_insert_char_and_view(_THIS, char ch, pl_readline_runtime *rt);
+void pl_readline_insert_char(char *str, char ch, int idx);
