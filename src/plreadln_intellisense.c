@@ -1,19 +1,31 @@
+//
+// This file is part of pl_readline.
+// pl_readline is free software: you can redistribute it and/or modify
+// it under the terms of MIT license.
+// See file LICENSE or https://opensource.org/licenses/MIT for full license
+// details.
+//
+// Copyright (c) 2024 min0911_ https://github.com/min0911Y
+//
+
+// pl_readline_intellisense.c : Intellisense feature for pl_readline.
+
 #include <assert.h>
 #include <pl_readline.h>
 #include <stdio.h>
 #include <string.h>
 
-static void insert_char(_THIS, char ch, pl_readline_runtime *rt) {
+static void insert_char(_SELF, char ch, pl_readline_runtime *rt) {
 
-  pl_readline_insert_char_and_view(this, ch, rt);
+  pl_readline_insert_char_and_view(self, ch, rt);
   pl_readline_insert_char(rt->input_buf, ch, rt->input_buf_ptr++);
 }
-static void insert_string(_THIS, char *str, pl_readline_runtime *rt) {
+static void insert_string(_SELF, char *str, pl_readline_runtime *rt) {
   while (*str) {
-    insert_char(this, *str++, rt);
+    insert_char(self, *str++, rt);
   }
 }
-pl_readline_word pl_readline_intellisense(_THIS, pl_readline_runtime *rt,
+pl_readline_word pl_readline_intellisense(_SELF, pl_readline_runtime *rt,
                                           pl_readline_words_t words) {
   char *buf;
 
@@ -31,7 +43,7 @@ pl_readline_word pl_readline_intellisense(_THIS, pl_readline_runtime *rt,
     buf = rt->intellisense_word;
     idx = strlen(buf);
   }
-  this->pl_readline_get_words(buf, words);
+  self->pl_readline_get_words(buf, words);
   int can_be_selected = 0;
   for (int i = 0; i < words->len; i++) {
     if (strncmp(buf, words->words[i].word, idx) == 0) {
@@ -62,11 +74,11 @@ pl_readline_word pl_readline_intellisense(_THIS, pl_readline_runtime *rt,
         break;
       } else {
         if (times == 0) {
-          pl_readline_print(this, "\n");
+          pl_readline_next_line(self, rt);
         }
         if (times)
-          pl_readline_print(this, " ");
-        pl_readline_print(this, words->words[i].word);
+          pl_readline_print(self, " ");
+        pl_readline_print(self, words->words[i].word);
         times++;
       }
     }
@@ -82,7 +94,7 @@ pl_readline_word pl_readline_intellisense(_THIS, pl_readline_runtime *rt,
 
   return ret;
 }
-void pl_readline_intellisense_insert(_THIS, pl_readline_runtime *rt,
+void pl_readline_intellisense_insert(_SELF, pl_readline_runtime *rt,
                                      pl_readline_word word) {
-  insert_string(this, word.word + rt->input_buf_ptr, rt);
+  insert_string(self, word.word + rt->input_buf_ptr, rt);
 }
