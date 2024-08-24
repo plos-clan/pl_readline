@@ -1,4 +1,5 @@
 #include <pl_readline.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <termio.h>
@@ -53,13 +54,13 @@ int getch(void) {
 }
 void flush() { fflush(stdout); }
 void handle_tab(char *buf, pl_readline_words_t words) {
-  pl_readline_word_maker_add("hello", words, false);
+  pl_readline_word_maker_add("hello", words, true);
   pl_readline_word_maker_add("world", words, false);
   pl_readline_word_maker_add("foo", words, false);
   pl_readline_word_maker_add("bar", words, false);
   pl_readline_word_maker_add("baz", words, false);
   pl_readline_word_maker_add("qux", words, false);
-  pl_readline_word_maker_add("helloworld", words, false);
+  // pl_readline_word_maker_add("helloworld", words, false);
 }
 int main() {
   pl_readline_words_t words = pl_readline_word_maker_init();
