@@ -74,7 +74,7 @@ int main() {
   return 0;
 }
 ```
-# feature (TODO and final)
+# feature
 - [x] 支持上下左右方向键
 - [x] 支持tab补全
 
