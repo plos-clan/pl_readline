@@ -478,6 +478,8 @@ static void list_print(list_t list) {
 #define PL_READLINE_KEY_RIGHT 0xff03
 #define PL_READLINE_KEY_ENTER '\n'
 #define PL_READLINE_KEY_TAB '\t'
+#define PL_READLINE_KEY_CTRL_A 0x01
+#define PL_READLINE_KEY_CTRL_C 0x03
 #define PL_READLINE_KEY_BACKSPACE '\b'
 #define _SELF pl_readline_t self
 #define PL_READLINE_SUCCESS 0

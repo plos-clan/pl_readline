@@ -301,6 +301,14 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
     }
     break;
   }
+  case PL_READLINE_KEY_CTRL_A:
+    pl_readline_reset(self, rt->p, 0);
+    rt->p = 0;
+    break;
+  case PL_READLINE_KEY_CTRL_C:
+    rt->buffer[0] = '\0';
+    pl_readline_print(self, "^C\n");
+    return PL_READLINE_SUCCESS;
   case ' ': {
     memset(rt->input_buf, 0, rt->maxlen);
     rt->input_buf_ptr = 0;
