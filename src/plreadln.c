@@ -17,9 +17,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int pl_readline_add_history(_SELF, char *line) {
-  if (strlen(line))
-    list_prepend(self->history, strdup(line));
+int pl_readline_add_history(_SELF, char *line) {
+  list_prepend(self->history, strdup(line));
+  return PL_READLINE_SUCCESS;
+}
+
+int pl_readline_remove_history(_SELF) {
+  auto list = list_head(self->history);
+  if (list) list_delete_node(self->history, list);
   return PL_READLINE_SUCCESS;
 }
 
@@ -37,6 +42,7 @@ pl_readline_t pl_readline_init(
   plreadln->pl_readline_get_words = pl_readline_get_words;
   // 设置history链表
   plreadln->history = NULL;
+  pl_readline_add_history(plreadln, strdup(""));
   return plreadln;
 }
 void pl_readline_uninit(_SELF) {
@@ -159,9 +165,14 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
   switch (ch) {
   case PL_READLINE_KEY_DOWN:
     rt->history_idx--;
-    pl_readline_handle_key_down_up(self, rt, 1); // n = 1是为了的失败的时候还原
+    // n = 1是为了的失败的时候还原
+    pl_readline_handle_key_down_up(self, rt, 1);
     break;
   case PL_READLINE_KEY_UP: {
+    if (rt->history_idx == 0) {
+      pl_readline_remove_history(self);
+      pl_readline_add_history(self, rt->buffer);
+    }
     rt->history_idx++;
     // n = -1是为了的失败的时候还原
     pl_readline_handle_key_down_up(self, rt, -1);
@@ -266,7 +277,9 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
     pl_readline_to_the_end(self, rt->length - rt->p);
     self->pl_readline_hal_putch('\n');
     rt->buffer[rt->length] = '\0';
+    pl_readline_remove_history(self);
     pl_readline_add_history(self, rt->buffer);
+    pl_readline_add_history(self, strdup(""));
     return PL_READLINE_SUCCESS;
   case PL_READLINE_KEY_TAB: { // 自动补全
     pl_readline_words_t words = pl_readline_word_maker_init();
@@ -310,7 +323,7 @@ int pl_readline(_SELF, char *prompt, char *buffer, size_t maxlen) {
   memset(input_buf, 0, maxlen + 1);
   int input_buf_ptr = 0;
   assert(input_buf);
-  pl_readline_runtime rt = {buffer, 0,         0, -1,    prompt,
+  pl_readline_runtime rt = {buffer, 0,         0,  0,    prompt,
                             maxlen,    input_buf, 0, false, NULL};
 
   // 清空缓冲区

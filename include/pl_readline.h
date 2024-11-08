@@ -402,7 +402,6 @@ static void list_print(list_t list) {
 #define list_prepend(list, data) ((list) = list_prepend(list, (void *)(data)))
 
 #define list_push(list, data) list_append(list, data)
-
 #define list_pop(list) list_pop(&(list))
 
 #define list_popi(list) ((usize)list_pop(list))
