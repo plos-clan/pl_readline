@@ -91,13 +91,13 @@ static void pl_readline_handle_key_down_up(_SELF, pl_readline_runtime *rt,
   self->pl_readline_hal_flush(); // 刷新输出缓冲区，在Linux下需要,否则会导致输入不显示
   rt->p = 0;                      // 光标移动到最左边
   rt->length = 0;                 // 清空缓冲区长度
-  memset(rt->buffer, 0, rt->len); // 清空缓冲区
+  memset(rt->buffer, 0, rt->maxlen); // 清空缓冲区
   strcpy(rt->buffer, node->data);
   pl_readline_print(self, rt->buffer); // 打印历史记录
   rt->length = strlen(rt->buffer);     // 更新缓冲区长度
   rt->p = rt->length;
 
-  memset(rt->input_buf, 0, rt->len); // 清空输入缓冲区
+  memset(rt->input_buf, 0, rt->maxlen); // 清空输入缓冲区
   rt->input_buf_ptr = 0;             // 输入缓冲区指针置0
   // strcpy(rt->input_buf, node->data); // 复制历史记录到输入缓冲区
   char *p = node->data;
@@ -149,7 +149,7 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
       rt->intellisense_word = NULL;
     }
   }
-  if (rt->length >= rt->len) { // 输入的字符数超过最大长度
+  if (rt->length >= rt->maxlen) { // 输入的字符数超过最大长度
     pl_readline_to_the_end(self, rt->length - rt->p);
     self->pl_readline_hal_putch('\n');
     rt->buffer[rt->length] = '\0';
@@ -173,7 +173,7 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
     rt->p--;
     pl_readline_print(self, "\e[D");
     if (rt->buffer[rt->p] == ' ') {
-      memset(rt->input_buf, 0, rt->len);
+      memset(rt->input_buf, 0, rt->maxlen);
       // 光标移动到前一个空格
       int i = rt->p;
       while (i && rt->buffer[i - 1] != ' ') {
@@ -198,7 +198,7 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
     rt->p++;
     pl_readline_print(self, "\e[C");
     if (rt->buffer[rt->p - 1] == ' ') {
-      memset(rt->input_buf, 0, rt->len);
+      memset(rt->input_buf, 0, rt->maxlen);
       // 光标移动到前一个空格
       int i = rt->p;
       int j = i;
@@ -224,7 +224,7 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
       return PL_READLINE_NOT_FINISHED;
     --rt->p;
     if (rt->buffer[rt->p] == ' ') {
-      memset(rt->input_buf, 0, rt->len);
+      memset(rt->input_buf, 0, rt->maxlen);
       // 光标移动到前一个空格
       int i = rt->p;
       while (i && rt->buffer[i - 1] != ' ') {
@@ -289,7 +289,7 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
     break;
   }
   case ' ': {
-    memset(rt->input_buf, 0, rt->len);
+    memset(rt->input_buf, 0, rt->maxlen);
     rt->input_buf_ptr = 0;
     goto handle;
   }
@@ -304,18 +304,18 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
 }
 
 // 主体函数
-int pl_readline(_SELF, char *prompt, char *buffer, size_t len) {
+int pl_readline(_SELF, char *prompt, char *buffer, size_t maxlen) {
   // 为了实现自动补全，需要将输入的字符保存到缓冲区中
-  char *input_buf = malloc(len + 1);
-  memset(input_buf, 0, len + 1);
+  char *input_buf = malloc(maxlen + 1);
+  memset(input_buf, 0, maxlen + 1);
   int input_buf_ptr = 0;
   assert(input_buf);
   pl_readline_runtime rt = {buffer, 0,         0, -1,    prompt,
-                            len,    input_buf, 0, false, NULL};
+                            maxlen,    input_buf, 0, false, NULL};
 
   // 清空缓冲区
-  memset(input_buf, 0, len + 1);
-  memset(buffer, 0, len);
+  memset(input_buf, 0, maxlen + 1);
+  memset(buffer, 0, maxlen);
   // 打印提示符
   pl_readline_print(self, prompt);
   self->pl_readline_hal_flush(); // 刷新输出缓冲区，在Linux下需要,否则会导致输入不显示

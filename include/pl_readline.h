@@ -518,7 +518,7 @@ typedef struct pl_readline_runtime {
   int length;             // 输入缓冲区长度（已经输入的字符数）
   int history_idx;        // 历史记录指针
   char *prompt;           // 提示符
-  size_t len;             // 缓冲区最大长度
+  size_t maxlen;          // 缓冲区最大长度
   char *input_buf;        // 输入缓冲区（补全的前缀）
   int input_buf_ptr;      // 输入缓冲区（补全的前缀）指针
   bool intellisense_mode; // 智能补全模式
@@ -530,7 +530,7 @@ pl_readline_t pl_readline_init(
     int (*pl_readline_hal_getch)(), void (*pl_readline_hal_putch)(int ch),
     void (*pl_readline_hal_flush)(),
     void (*pl_readline_get_words)(char *buf, pl_readline_words_t words));
-int pl_readline(_SELF, char *prompt, char *buffer, size_t len);
+int pl_readline(_SELF, char *prompt, char *buffer, size_t maxlen);
 pl_readline_word pl_readline_intellisense(_SELF, pl_readline_runtime *rt,
                                           pl_readline_words_t words);
 void pl_readline_insert_char_and_view(_SELF, char ch, pl_readline_runtime *rt);
