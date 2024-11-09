@@ -24,7 +24,8 @@ int pl_readline_add_history(_SELF, char *line) {
 
 int pl_readline_remove_history(_SELF) {
   auto list = list_head(self->history);
-  if (list) list_delete_node(self->history, list);
+  if (list)
+    list_delete_node_with(self->history, list, free);
   return PL_READLINE_SUCCESS;
 }
 
@@ -42,7 +43,7 @@ pl_readline_t pl_readline_init(
   plreadln->pl_readline_get_words = pl_readline_get_words;
   // 设置history链表
   plreadln->history = NULL;
-  pl_readline_add_history(plreadln, strdup(""));
+  pl_readline_add_history(plreadln, "");
   return plreadln;
 }
 void pl_readline_uninit(_SELF) {
@@ -51,12 +52,14 @@ void pl_readline_uninit(_SELF) {
 }
 void pl_readline_insert_char(char *str, char ch, int idx) {
   int len = strlen(str);
-  if (len) memmove(str + idx + 1, str + idx, len - idx);
+  if (len)
+    memmove(str + idx + 1, str + idx, len - idx);
   str[idx] = ch;
 }
 static void pl_readline_delete_char(char *str, int idx) {
   int len = strlen(str);
-  if (len) memmove(str + idx, str + idx + 1, len - idx);
+  if (len)
+    memmove(str + idx, str + idx + 1, len - idx);
   str[len] = '\0';
 }
 
@@ -95,8 +98,8 @@ static void pl_readline_handle_key_down_up(_SELF, pl_readline_runtime *rt,
   }
   pl_readline_reset(self, rt->p, rt->length); // 重置光标和输入的字符
   self->pl_readline_hal_flush(); // 刷新输出缓冲区，在Linux下需要,否则会导致输入不显示
-  rt->p = 0;                      // 光标移动到最左边
-  rt->length = 0;                 // 清空缓冲区长度
+  rt->p = 0;                         // 光标移动到最左边
+  rt->length = 0;                    // 清空缓冲区长度
   memset(rt->buffer, 0, rt->maxlen); // 清空缓冲区
   strcpy(rt->buffer, node->data);
   pl_readline_print(self, rt->buffer); // 打印历史记录
@@ -104,7 +107,7 @@ static void pl_readline_handle_key_down_up(_SELF, pl_readline_runtime *rt,
   rt->p = rt->length;
 
   memset(rt->input_buf, 0, rt->maxlen); // 清空输入缓冲区
-  rt->input_buf_ptr = 0;             // 输入缓冲区指针置0
+  rt->input_buf_ptr = 0;                // 输入缓冲区指针置0
   // strcpy(rt->input_buf, node->data); // 复制历史记录到输入缓冲区
   char *p = node->data;
   while (*p) {
@@ -279,7 +282,7 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
     rt->buffer[rt->length] = '\0';
     pl_readline_remove_history(self);
     pl_readline_add_history(self, rt->buffer);
-    pl_readline_add_history(self, strdup(""));
+    pl_readline_add_history(self, "");
     return PL_READLINE_SUCCESS;
   case PL_READLINE_KEY_TAB: { // 自动补全
     pl_readline_words_t words = pl_readline_word_maker_init();
@@ -323,7 +326,6 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
   }
   return PL_READLINE_NOT_FINISHED;
 }
-
 // 主体函数
 int pl_readline(_SELF, char *prompt, char *buffer, size_t maxlen) {
   // 为了实现自动补全，需要将输入的字符保存到缓冲区中
@@ -331,8 +333,8 @@ int pl_readline(_SELF, char *prompt, char *buffer, size_t maxlen) {
   memset(input_buf, 0, maxlen + 1);
   int input_buf_ptr = 0;
   assert(input_buf);
-  pl_readline_runtime rt = {buffer, 0,         0,  0,    prompt,
-                            maxlen,    input_buf, 0, false, NULL};
+  pl_readline_runtime rt = {buffer, 0,         0, 0,     prompt,
+                            maxlen, input_buf, 0, false, NULL};
 
   // 清空缓冲区
   memset(input_buf, 0, maxlen + 1);

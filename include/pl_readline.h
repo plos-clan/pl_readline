@@ -163,7 +163,6 @@ static list_t list_free(list_t list) {
   }
   return NULL;
 }
-
 static list_t list_free_with(list_t list, void (*free_data)(void *)) {
   while (list != NULL) {
     list_t next = list->next;
@@ -503,7 +502,7 @@ typedef struct pl_readline_words {
   int len;                 // 词组数量
   int max_len;             // 词组最大数量
   pl_readline_word *words; // 词组列表
-} * pl_readline_words_t;
+} *pl_readline_words_t;
 
 typedef struct pl_readline {
   int (*pl_readline_hal_getch)();        // 输入函数
@@ -512,7 +511,7 @@ typedef struct pl_readline {
   void (*pl_readline_get_words)(char *buf,
                                 pl_readline_words_t words); // 获取词组列表
   list_t history; // 历史记录列表
-} * pl_readline_t;
+} *pl_readline_t;
 typedef struct pl_readline_runtime {
   char *buffer;           // 输入缓冲区
   int p;                  // 输入缓冲区指针
