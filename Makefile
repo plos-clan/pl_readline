@@ -15,7 +15,7 @@ lib: all
 
 test: CFLAGS := $(DEBUG_CFLAGS)
 test: $(OBJS)
-	$(CC) $(DEBUG_CFLAGS) example/name.c -o name.out -L. -lplreadln
+	$(CC) $(DEBUG_CFLAGS) example/name.c -o name.out $(OBJS)
 
 build/%.o: src/%.c
 	@mkdir -p $(dir $@)
