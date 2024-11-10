@@ -23,17 +23,19 @@ int getch(void) {
     if (tcsetattr(fd, TCSANOW, &tm_old) < 0)
         return -1;
 
-    switch (ch) {
-    case 0x0d:
+    if (ch == 0x0d) {
         return PL_READLINE_KEY_ENTER;
-    case 0x7f:
+    }
+    if (ch == 0x7f) {
         return PL_READLINE_KEY_BACKSPACE;
-    case 0x09:
+    }
+    if (ch == 0x9) {
         return PL_READLINE_KEY_TAB;
-    case 0x1b:
-        ch = getchar();
+    }
+    if (ch == 0x1b) {
+        ch = getch();
         if (ch == '[') {
-            ch = getchar();
+            ch = getch();
             switch (ch) {
             case 'A':
                 return PL_READLINE_KEY_UP;
@@ -48,20 +50,19 @@ int getch(void) {
             case 'F':
                 return PL_READLINE_KEY_END;
             case '5':
-                if (getchar() == '~')
+                if (getch() == '~')
                     return PL_READLINE_KEY_PAGE_UP;
                 break;
             case '6':
-                if (getchar() == '~')
+                if (getch() == '~')
                     return PL_READLINE_KEY_PAGE_DOWN;
                 break;
+            default:
+                return -1;
             }
         }
-        break;
-    default:
-        return ch;
     }
-    return -1;
+    return ch;
 }
 
 void flush() { fflush(stdout); }
@@ -82,7 +83,7 @@ int main() {
     char *buffer = malloc(255);
     while (1) {
         pl_readline(n, "input: ", buffer, 255);
-        printf("you input: %s\n", buffer);
+        printf("your input: %s\n", buffer);
         if (strcmp(buffer, "exit") == 0)
             break;
     }

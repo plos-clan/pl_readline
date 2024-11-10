@@ -25,7 +25,8 @@ int pl_readline_add_history(_SELF, char *line) {
 int pl_readline_modify_history(_SELF, pl_readline_runtime *rt) {
     list_t node = list_nth(self->history, rt->history_idx);
     // 当前历史记录肯定不为空，如果为空炸了算了
-    strcpy(node->data, rt->buffer);
+    free(node->data);
+    node->data = strdup(rt->buffer);
     return PL_READLINE_SUCCESS;
 }
 
@@ -94,8 +95,7 @@ static void pl_readline_to_the_end(_SELF, int n) {
 }
 
 // 处理向上向下键（移动到第n个历史）
-static bool pl_readline_handle_history(_SELF, pl_readline_runtime *rt,
-                                           int n) {
+static bool pl_readline_handle_history(_SELF, pl_readline_runtime *rt, int n) {
     list_t node = list_nth(self->history, n); // 获取历史记录
     if (!node)
         return false;
