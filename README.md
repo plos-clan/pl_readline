@@ -1,111 +1,143 @@
-# Introduction
-一个简单的键盘输入库，计划支持上下左右方向键，tab补全
-# Example for Linux
+# pl_readline
+
+一个简单的键盘输入库，计划支持上下左右方向键，tab 补全
+
+## Example
+
 **NOTE**: This example is for Linux only.
+
 ```c
+#include <pl_readline.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <termio.h>
 
 int getch(void) {
-  struct termios tm, tm_old;
-  int fd = 0, ch;
+    struct termios tm, tm_old;
+    int fd = 0, ch;
 
-  if (tcgetattr(fd, &tm) < 0) { //保存现在的终端设置
-    return -1;
-  }
+    if (tcgetattr(fd, &tm) < 0) return -1; // 保存现在的终端设置
 
-  tm_old = tm;
-  cfmakeraw(
-      &tm); //更改终端设置为原始模式，该模式下所有的输入数据以字节为单位被处理
-  if (tcsetattr(fd, TCSANOW, &tm) < 0) { //设置上更改之后的设置
-    return -1;
-  }
+    tm_old = tm;
+    cfmakeraw(&tm); // 更改终端设置为原始模式，让所有输入数据以字节为单位处理
 
-  ch = getchar();
-  if (tcsetattr(fd, TCSANOW, &tm_old) < 0) { //更改设置为最初的样子
-    return -1;
-  }
-  if (ch == 0x0d) {
-    return PL_READLINE_KEY_ENTER;
-  }
-  if (ch == 0x7f) {
-    return PL_READLINE_KEY_BACKSPACE;
-  }
-  if (ch == 0x9) {
-    return PL_READLINE_KEY_TAB;
-  }
-  if (ch == 0x1b) {
-    ch = getch();
-    if (ch == 0x5b) {
-      ch = getch();
-      switch (ch) {
-      case 0x41:
-        return PL_READLINE_KEY_UP;
-      case 0x42:
-        return PL_READLINE_KEY_DOWN;
-      case 0x43:
-        return PL_READLINE_KEY_RIGHT;
-      case 0x44:
-        return PL_READLINE_KEY_LEFT;
-      default:
+    if (tcsetattr(fd, TCSANOW, &tm) < 0) { // 设置上更改之后的设置
         return -1;
-      }
     }
-  }
-  return ch;
+
+    ch = getchar();
+    if (tcsetattr(fd, TCSANOW, &tm_old) < 0) { // 更改设置为最初的样子
+        return -1;
+    }
+    if (ch == 0x0d) {
+        return PL_READLINE_KEY_ENTER;
+    }
+    if (ch == 0x7f) {
+        return PL_READLINE_KEY_BACKSPACE;
+    }
+    if (ch == 0x9) {
+        return PL_READLINE_KEY_TAB;
+    }
+    if (ch == 0x1b) {
+        ch = getch();
+        if (ch == '[') {
+            ch = getch();
+            switch (ch) {
+            case 'A':
+                return PL_READLINE_KEY_UP;
+            case 'B':
+                return PL_READLINE_KEY_DOWN;
+            case 'C':
+                return PL_READLINE_KEY_RIGHT;
+            case 'D':
+                return PL_READLINE_KEY_LEFT;
+            case 'H':
+                return PL_READLINE_KEY_HOME;
+            case 'F':
+                return PL_READLINE_KEY_END;
+            case '5':
+                ch = getch();
+                if (ch == '~') {
+                    return PL_READLINE_KEY_PAGE_UP;
+                }
+                return -1;
+            case '6':
+                ch = getch();
+                if (ch == '~') {
+                    return PL_READLINE_KEY_PAGE_DOWN;
+                }
+                return -1;
+            }
+        }
+    }
+    return ch;
 }
+
 void flush() { fflush(stdout); }
+
 void handle_tab(char *buf, pl_readline_words_t words) {
-  pl_readline_word_maker_add("hello", words, true, ' ');
-  pl_readline_word_maker_add("world", words, false, ' ');
-  pl_readline_word_maker_add("foo", words, false, ' ');
-  pl_readline_word_maker_add("bar", words, false, ' ');
-  pl_readline_word_maker_add("baz", words, false, ' ');
-  pl_readline_word_maker_add("qux", words, false, ' ');
+    pl_readline_word_maker_add("hello", words, true, ' ');
+    pl_readline_word_maker_add("world", words, false, ' ');
+    pl_readline_word_maker_add("foo", words, false, ' ');
+    pl_readline_word_maker_add("bar", words, false, ' ');
+    pl_readline_word_maker_add("baz", words, false, ' ');
+    pl_readline_word_maker_add("qux", words, false, ' ');
 }
+
 int main() {
-  pl_readline_t n = pl_readline_init(getch, (void *)putchar, flush, handle_tab);
-  char *line = malloc(100);
-  pl_readline(n,"type something: ", line, 100);
-  printf("you typed: %s\n", line);
-  free(line);
-  pl_readline_uninit(n);
-  return 0;
+    pl_readline_t n =
+        pl_readline_init(getch, (void *)putchar, flush, handle_tab);
+    char *buffer = malloc(255);
+    while (1) {
+        pl_readline(n, "input: ", buffer, 255);
+        printf("you input: %s\n", buffer);
+        if (strcmp(buffer, "exit") == 0)
+            break;
+    }
+    pl_readline_uninit(n);
+    free(buffer);
 }
 ```
-# feature
+
+## Feature
 - [x] 支持上下左右方向键
-- [x] 支持tab补全
+- [x] 支持 tab 补全
 
-# why to write pl_readline?
-因为我不想依赖于系统的readline库，而是自己实现一个简单的键盘输入库。在写一个裸机程序时，用这个库可以节省很多时间。当然，你也可以用这个库来为你的操作系统实现shell,因为这个库是以MIT协议发布的。
+## Why to write pl_readline
 
-# how to port to other system?
-## basic support
-终端需要支持vt100控制字符，能输出字符和读取输入字符，输出字符和输入字符需要没有缓冲，你可以在getch中刷新缓冲。
-## extended support
-实现Plant OS的vt100扩展功能：`\x1b[C`向右到顶时会自动换行、`\x1b[D`向左到底时会自动换行
+因为我不想依赖于系统的 readline 库，而是自己实现一个简单的键盘输入库。在写一个裸机程序时，用这个库可以节省很多时间。当然，你也可以用这个库来为你的操作系统实现 shell，因为这个库是以 MIT 协议发布的。
+
+## How to port to other system
+
+### Basic support
+
+终端需要支持 vt100 控制字符，能输出字符和读取输入字符，输出字符和输入字符需要没有缓冲，你可以在 getch 中刷新缓冲。
+
+### Extended support
+
+实现 Plant OS 的 vt100 扩展功能：`\x1b[C`向右到顶时会自动换行、`\x1b[D`向左到底时会自动换行
 这样可以支持多行
 
-## General explanation
-如果你的终端没有vt100支持，可以搭配[os-terminal](https://github.com/plos-clan/libos-terminal)使用，效果也很不错。
+### General explanation
 
-# PR
+如果你的终端没有 vt100 支持，可以搭配[os-terminal](https://github.com/plos-clan/libos-terminal)使用，效果也很不错。
 
-本库支持的功能还不完整，欢迎PR。
+## Contribution
 
-# issue
+本库支持的功能还不完整，欢迎 PR。
 
-如果有任何bug,请在issue中提出。
+如果有任何 bug，请在 issues 中提出。
 
-**不接受新feature的issue，但接受PR**
+**不接受新 feature 的 issue，但接受 PR**
 
 但如果是下面的问题，将不会答复：
-- linux上无法多行。
 
-发送issue你可能需要知道的：遇到bug请讲明白复现步骤，否则很难帮你解决。
+- linux 上无法多行。
 
-# at last
+发送 issue 你可能需要知道的：遇到 bug 请讲明白复现步骤，否则很难帮你解决。
+
+## Additional
 
 **HAVE FUN! 祝你玩的开心！**

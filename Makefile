@@ -1,6 +1,6 @@
 CC := gcc
 DEBUG_CFLAGS := -g -Og -I./include
-RELEASE_CFLAGS := -O3 -I./include
+RELEASE_CFLAGS := -O3 -DNDEBUG -I./include
 
 SRCS := plreadln.c plreadln_wordmk.c plreadln_intellisense.c
 OBJS := $(SRCS:%.c=build/%.o)
