@@ -88,6 +88,9 @@ int main() {
 实现Plant OS的vt100扩展功能：`\x1b[C`向右到顶时会自动换行、`\x1b[D`向左到底时会自动换行
 这样可以支持多行
 
+## General explanation
+如果你的终端没有vt100支持，可以搭配[os-terminal](https://github.com/plos-clan/libos-terminal)使用，效果也很不错。
+
 # PR
 
 本库支持的功能还不完整，欢迎PR。
