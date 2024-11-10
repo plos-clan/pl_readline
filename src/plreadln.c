@@ -280,6 +280,7 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
         pl_readline_to_the_end(self, rt->length - rt->p);
         self->pl_readline_hal_putch('\n');
         rt->buffer[rt->length] = '\0';
+        rt->history_idx = 0;
         pl_readline_modify_history(self, rt);
         pl_readline_add_history(self, "");
         return PL_READLINE_SUCCESS;
