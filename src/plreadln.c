@@ -44,12 +44,20 @@ pl_readline_t pl_readline_init(
     plreadln->pl_readline_get_words = pl_readline_get_words;
     // 设置history链表
     plreadln->history = NULL;
+    plreadln->maxlen = PL_READLINE_DEFAULT_BUFFER_LEN;
+    // 设置输入缓冲区
+    plreadln->buffer = malloc(plreadln->maxlen);
+    if (!plreadln->buffer) {
+        free(plreadln);
+        return NULL;
+    }
     pl_readline_add_history(plreadln, "");
     return plreadln;
 }
 
 void pl_readline_uninit(_SELF) {
     list_free_with(self->history, free);
+    free(self->buffer);
     free(self);
 }
 
@@ -348,17 +356,18 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
 }
 
 // 主体函数
-int pl_readline(_SELF, char *prompt, char *buffer, size_t maxlen) {
+const char *pl_readline(_SELF, char *prompt) {
     // 为了实现自动补全，需要将输入的字符保存到缓冲区中
-    char *input_buf = malloc(maxlen + 1);
-    memset(input_buf, 0, maxlen + 1);
+    char *input_buf = malloc(self->maxlen + 1);
+    memset(input_buf, 0, self->maxlen + 1);
     assert(input_buf);
-    pl_readline_runtime rt = {buffer, 0,         0, 0,     prompt,
-                              maxlen, input_buf, 0, false, NULL};
+
+    pl_readline_runtime rt = {self->buffer, 0,         0, 0,     prompt,
+                              self->maxlen, input_buf, 0, false, NULL};
 
     // 清空缓冲区
-    memset(input_buf, 0, maxlen + 1);
-    memset(buffer, 0, maxlen);
+    memset(input_buf, 0, self->maxlen + 1);
+    memset(self->buffer, 0, self->maxlen);
     // 打印提示符
     pl_readline_print(self, prompt);
     self->pl_readline_hal_flush(); // 刷新输出缓冲区，在Linux下需要,否则会导致输入不显示
@@ -374,5 +383,6 @@ int pl_readline(_SELF, char *prompt, char *buffer, size_t maxlen) {
     if (rt.intellisense_word) {
         free(rt.intellisense_word);
     }
-    return PL_READLINE_SUCCESS;
+
+    return self->buffer;
 }

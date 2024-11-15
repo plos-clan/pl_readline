@@ -81,13 +81,11 @@ void handle_tab(char *buf, pl_readline_words_t words) {
 int main(void) {
     pl_readline_t pl =
         pl_readline_init(getch, (void (*)(int))putchar, flush, handle_tab);
-    char *buffer = malloc(255);
     while (1) {
-        pl_readline(pl, "\033[1;32m[user@localhost]$\033[0m ", buffer, 255);
+        const char *buffer = pl_readline(pl, "\033[1;32m[user@localhost]$\033[0m ");
         printf("Your input: %s\n", buffer);
         if (strcmp(buffer, "exit") == 0)
             break;
     }
     pl_readline_uninit(pl);
-    free(buffer);
 }

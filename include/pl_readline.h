@@ -19,10 +19,12 @@
 #define PL_READLINE_KEY_CTRL_A 0x01
 #define PL_READLINE_KEY_CTRL_C 0x03
 #define PL_READLINE_KEY_BACKSPACE '\b'
+
 #define _SELF pl_readline_t self
 #define PL_READLINE_SUCCESS 0
 #define PL_READLINE_FAILED -1
 #define PL_READLINE_NOT_FINISHED 1
+#define PL_READLINE_DEFAULT_BUFFER_LEN 32
 
 typedef struct pl_readline_word {
     char *word; // 词组
@@ -49,6 +51,8 @@ typedef struct pl_readline {
     void (*pl_readline_get_words)(char *buf,
                                   pl_readline_words_t words); // 获取词组列表
     list_t history; // 历史记录列表
+    char *buffer;         // 输入缓冲区
+    size_t maxlen;        // 缓冲区最大长度
 } *pl_readline_t;
 
 typedef struct pl_readline_runtime {
@@ -69,7 +73,7 @@ pl_readline_t pl_readline_init(
     int (*pl_readline_hal_getch)(void), void (*pl_readline_hal_putch)(int ch),
     void (*pl_readline_hal_flush)(void),
     void (*pl_readline_get_words)(char *buf, pl_readline_words_t words));
-int pl_readline(_SELF, char *prompt, char *buffer, size_t maxlen);
+const char *pl_readline(_SELF, char *prompt);
 pl_readline_word pl_readline_intellisense(_SELF, pl_readline_runtime *rt,
                                           pl_readline_words_t words);
 void pl_readline_insert_char_and_view(_SELF, char ch, pl_readline_runtime *rt);
