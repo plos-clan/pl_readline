@@ -1,6 +1,7 @@
-CC := gcc
-DEBUG_CFLAGS := -g -Og -I./include
-RELEASE_CFLAGS := -O3 -DNDEBUG -I./include
+CC := clang
+CFLAGS := -I./include -Wall -Wextra -pedantic -Wno-unused-function
+DEBUG_CFLAGS := $(CFLAGS) -g -Og
+RELEASE_CFLAGS := $(CFLAGS) -O3 -DNDEBUG
 
 SRCS := plreadln.c plreadln_wordmk.c plreadln_intellisense.c
 OBJS := $(SRCS:%.c=build/%.o)
@@ -15,11 +16,11 @@ lib: all
 
 test: CFLAGS := $(DEBUG_CFLAGS)
 test: $(OBJS)
-	$(CC) $(DEBUG_CFLAGS) example/name.c -o name.out $(OBJS)
+	$(CC) $(DEBUG_CFLAGS) example/echo.c -o echo.out $(OBJS)
 
 build/%.o: src/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf build libplreadln.a name.out
+	rm -rf build libplreadln.a echo.out

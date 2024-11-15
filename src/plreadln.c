@@ -31,8 +31,8 @@ int pl_readline_modify_history(_SELF, pl_readline_runtime *rt) {
 }
 
 pl_readline_t pl_readline_init(
-    int (*pl_readline_hal_getch)(), void (*pl_readline_hal_putch)(int ch),
-    void (*pl_readline_hal_flush)(),
+    int (*pl_readline_hal_getch)(void), void (*pl_readline_hal_putch)(int ch),
+    void (*pl_readline_hal_flush)(void),
     void (*pl_readline_get_words)(char *buf, pl_readline_words_t words)) {
     pl_readline_t plreadln = malloc(sizeof(struct pl_readline));
     if (!plreadln)
@@ -76,21 +76,21 @@ void pl_readline_print(_SELF, char *str) {
 static void pl_readline_reset(_SELF, int p, int len) {
     char buf[255] = {0};
     if (p) {
-        sprintf(buf, "\e[%dD", p);
+        sprintf(buf, "\033[%dD", p);
         pl_readline_print(self, buf);
     }
     if (len) {
         for (int i = 0; i < len; i++) {
             self->pl_readline_hal_putch(' ');
         }
-        sprintf(buf, "\e[%dD", len);
+        sprintf(buf, "\033[%dD", len);
         pl_readline_print(self, buf);
     }
 }
 
 static void pl_readline_to_the_end(_SELF, int n) {
     char buf[255] = {0};
-    sprintf(buf, "\e[%dC", n);
+    sprintf(buf, "\033[%dC", n);
     pl_readline_print(self, buf);
 }
 
@@ -133,7 +133,7 @@ void pl_readline_insert_char_and_view(_SELF, char ch, pl_readline_runtime *rt) {
     if (n) {
         char buf[255] = {0};
         pl_readline_print(self, rt->buffer + rt->p - 1);
-        sprintf(buf, "\e[%dD", n);
+        sprintf(buf, "\033[%dD", n);
         pl_readline_print(self, buf);
 
     } else {
@@ -148,7 +148,7 @@ void pl_readline_next_line(_SELF, pl_readline_runtime *rt) {
         pl_readline_print(self, "\n");
         return;
     }
-    sprintf(buf, "\e[%dC", n); // 光标移动到最右边
+    sprintf(buf, "\033[%dC", n); // 光标移动到最右边
     pl_readline_print(self, buf);
     pl_readline_print(self, "\n");
 }
@@ -185,17 +185,16 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
         if (!rt->p) // 光标在最左边
             return PL_READLINE_NOT_FINISHED;
         rt->p--;
-        pl_readline_print(self, "\e[D");
+        pl_readline_print(self, "\033[D");
         if (rt->buffer[rt->p] == ' ') {
             memset(rt->input_buf, 0, rt->maxlen);
             // 光标移动到前一个空格
-            int i = rt->p;
+            size_t i = rt->p;
             while (i && rt->buffer[i - 1] != ' ') {
                 i--;
             }
             rt->input_buf_ptr = 0;
             // 从i开始复制到rt->input_buf，直到遇到空格
-            int len = rt->p - i;
             while (i < rt->p && rt->buffer[i] != ' ') {
                 rt->input_buf[rt->input_buf_ptr++] = rt->buffer[i];
                 i++;
@@ -210,18 +209,17 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
         if (rt->p == rt->length) // 光标在最右边
             return PL_READLINE_NOT_FINISHED;
         rt->p++;
-        pl_readline_print(self, "\e[C");
+        pl_readline_print(self, "\033[C");
         if (rt->buffer[rt->p - 1] == ' ') {
             memset(rt->input_buf, 0, rt->maxlen);
             // 光标移动到前一个空格
-            int i = rt->p;
-            int j = i;
+            size_t i = rt->p;
+            size_t j = i;
             while (i < rt->length && rt->buffer[i + 1] != ' ') {
                 i++;
             }
             rt->input_buf_ptr = 0;
             // 从i开始复制到rt->input_buf，直到遇到空格
-            int len = i - j;
             while (j <= i && rt->buffer[i] != ' ') {
                 rt->input_buf[rt->input_buf_ptr++] = rt->buffer[j];
                 j++;
@@ -240,7 +238,7 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
         if (rt->buffer[rt->p] == ' ') {
             memset(rt->input_buf, 0, rt->maxlen);
             // 光标移动到前一个空格
-            int i = rt->p;
+            size_t i = rt->p;
             while (i && rt->buffer[i - 1] != ' ') {
                 i--;
             }
@@ -263,17 +261,17 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
         int n = rt->length - rt->p;
         if (n) {
             char buf[255] = {0};
-            sprintf(buf, "\e[%dC\e[D ", n);
+            sprintf(buf, "\033[%dC\033[D ", n);
             pl_readline_print(self, buf);
 
-            sprintf(buf, "\e[%dD", n);
+            sprintf(buf, "\033[%dD", n);
             pl_readline_print(self, buf);
-            pl_readline_print(self, "\e[D");
+            pl_readline_print(self, "\033[D");
             pl_readline_print(self, rt->buffer + rt->p);
             pl_readline_print(self, buf);
 
         } else {
-            pl_readline_print(self, "\e[D \e[D");
+            pl_readline_print(self, "\033[D \033[D");
         }
         break;
     case PL_READLINE_KEY_ENTER:
@@ -298,7 +296,7 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
             int n = rt->length - rt->p;
             char buf[255] = {0};
             if (n) {
-                sprintf(buf, "\e[%dD", n);
+                sprintf(buf, "\033[%dD", n);
                 pl_readline_print(self, buf);
             }
             self->pl_readline_hal_flush();
@@ -310,19 +308,21 @@ int pl_readline_handle_key(_SELF, int ch, pl_readline_runtime *rt) {
         pl_readline_reset(self, rt->p, 0);
         rt->p = 0;
         break;
-    case PL_READLINE_KEY_END:
-        int diff = rt->length - rt->p;
+    case PL_READLINE_KEY_END: {
+        size_t diff = rt->length - rt->p;
         if (diff) {
             pl_readline_to_the_end(self, rt->length - rt->p);
             rt->p = rt->length;
         }
         break;
-    case PL_READLINE_KEY_PAGE_UP:
-        int len = list_length(self->history);
+    }
+    case PL_READLINE_KEY_PAGE_UP: {
+        size_t len = list_length(self->history);
         pl_readline_modify_history(self, rt);
         pl_readline_handle_history(self, rt, len - 1);
         rt->history_idx = len - 1;
         break;
+    }
     case PL_READLINE_KEY_PAGE_DOWN:
         pl_readline_modify_history(self, rt);
         pl_readline_handle_history(self, rt, 0);
@@ -352,7 +352,6 @@ int pl_readline(_SELF, char *prompt, char *buffer, size_t maxlen) {
     // 为了实现自动补全，需要将输入的字符保存到缓冲区中
     char *input_buf = malloc(maxlen + 1);
     memset(input_buf, 0, maxlen + 1);
-    int input_buf_ptr = 0;
     assert(input_buf);
     pl_readline_runtime rt = {buffer, 0,         0, 0,     prompt,
                               maxlen, input_buf, 0, false, NULL};

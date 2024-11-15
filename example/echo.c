@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <termio.h>
+#include <unistd.h>
 
 int getch(void) {
     struct termios tm, tm_old;
@@ -65,28 +66,28 @@ int getch(void) {
     return ch;
 }
 
-void flush() { fflush(stdout); }
+void flush(void) { fflush(stdout); }
 
 void handle_tab(char *buf, pl_readline_words_t words) {
+    (void)buf;
     pl_readline_word_maker_add("ls", words, true, ' ');
     pl_readline_word_maker_add("echo", words, true, ' ');
     pl_readline_word_maker_add("cat", words, true, ' ');
     pl_readline_word_maker_add("ps", words, true, ' ');
     pl_readline_word_maker_add("foo", words, false, ' ');
     pl_readline_word_maker_add("bar", words, false, ' ');
-    // pl_readline_word_maker_add("helloworld", words, false);
 }
 
-int main() {
-    pl_readline_t n =
-        pl_readline_init(getch, (void *)putchar, flush, handle_tab);
+int main(void) {
+    pl_readline_t pl =
+        pl_readline_init(getch, (void (*)(int))putchar, flush, handle_tab);
     char *buffer = malloc(255);
     while (1) {
-        pl_readline(n, "\e[1;32m[user@localhost]$\e[0m ", buffer, 255);
+        pl_readline(pl, "\033[1;32m[user@localhost]$\033[0m ", buffer, 255);
         printf("Your input: %s\n", buffer);
         if (strcmp(buffer, "exit") == 0)
             break;
     }
-    pl_readline_uninit(n);
+    pl_readline_uninit(pl);
     free(buffer);
 }
