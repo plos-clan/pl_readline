@@ -288,8 +288,10 @@ int pl_readline_handle_key(_self, int ch) {
         self->pl_readline_hal_putch('\n');
         self->buffer[self->length] = '\0';
         self->history_idx = 0;
-        pl_readline_modify_history(self);
-        pl_readline_add_history(self, "");
+        if(self->buffer[0] != '\0') {
+            pl_readline_modify_history(self);
+            pl_readline_add_history(self, "");
+        }
         return PL_READLINE_SUCCESS;
     case PL_READLINE_KEY_TAB: { // 自动补全
         pl_readline_words_t words = pl_readline_word_maker_init();
