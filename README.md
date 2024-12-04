@@ -1,6 +1,6 @@
 # pl_readline
 
-一个简单的键盘输入库，计划支持上下左右方向键，tab 补全
+一个简单的键盘输入库，支持方向键及 tab 补全。
 
 ## Example
 
@@ -102,8 +102,12 @@ int main() {
 ```
 
 ## Feature
-- [x] 支持上下左右方向键
+
+- [x] 自定义提示符
+- [x] 左右方向键移动光标
+- [x] 上下方向键翻看历史命令
 - [x] 支持 tab 补全
+- [ ] 获取终端大小并手动维护换行
 
 ## Why to write pl_readline
 
@@ -117,8 +121,7 @@ int main() {
 
 ### Extended support
 
-实现 Plant OS 的 vt100 扩展功能：`\x1b[C`向右到顶时会自动换行、`\x1b[D`向左到底时会自动换行
-这样可以支持多行
+实现 Plant OS 的 vt100 扩展功能：`\x1b[C`向右到顶时会自动换行、`\x1b[D`向左到底时会自动换行，这样可以暂时支持多行
 
 ### General explanation
 
