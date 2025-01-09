@@ -309,6 +309,7 @@ int pl_readline_handle_key(_self, int ch) {
     } else if (word_seletion.first) {
       pl_readline_print(self, "\n");
       pl_readline_print(self, self->prompt);
+      self->buffer[self->length] = '\0';
       pl_readline_print(self, self->buffer);
       int n = self->length - self->ptr;
       char buf[255] = {0};
