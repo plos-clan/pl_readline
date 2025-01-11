@@ -64,7 +64,7 @@ void pl_readline_uninit(_self) {
 }
 
 void pl_readline_insert_char(char *str, char ch, int idx) {
-  int len = strlen(str);
+  int len = strlen(str) + 1; // 还要复制字符串结束符
   if (len)
     memmove(str + idx + 1, str + idx, len - idx);
   str[idx] = ch;
@@ -140,6 +140,7 @@ void pl_readline_insert_char_and_view(_self, char ch) {
     self->maxlen *= 2;
     self->buffer = realloc(self->buffer, self->maxlen);
     self->input_buf = realloc(self->input_buf, self->maxlen);
+    self->buffer[self->length] = '\0';
     if (!self->buffer)
       abort(); // 炸了算了
   }
@@ -151,7 +152,6 @@ void pl_readline_insert_char_and_view(_self, char ch) {
     pl_readline_print(self, self->buffer + self->ptr - 1);
     sprintf(buf, "\033[%dD", n);
     pl_readline_print(self, buf);
-
   } else {
     self->pl_readline_hal_putch(ch);
   }
@@ -182,6 +182,7 @@ int pl_readline_handle_key(_self, int ch) {
     self->maxlen *= 2;
     self->buffer = realloc(self->buffer, self->maxlen);
     self->input_buf = realloc(self->input_buf, self->maxlen);
+    self->buffer[self->length] = '\0'; // input_buf在处理时会自动截断 不用我们加
     if (!self->buffer)
       return PL_READLINE_FAILED;
   }
@@ -220,6 +221,7 @@ int pl_readline_handle_key(_self, int ch) {
     } else {
       self->input_ptr--;
     }
+    printf("\n%s\n",self->buffer);
     break;
   case PL_READLINE_KEY_RIGHT:
     if (self->ptr == self->length) // 光标在最右边
