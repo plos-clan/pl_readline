@@ -221,7 +221,6 @@ int pl_readline_handle_key(_self, int ch) {
     } else {
       self->input_ptr--;
     }
-    printf("\n%s\n",self->buffer);
     break;
   case PL_READLINE_KEY_RIGHT:
     if (self->ptr == self->length) // 光标在最右边
