@@ -2,16 +2,18 @@ CC := clang
 CFLAGS := -I./include -Wall -Wextra -pedantic -Wno-unused-function
 DEBUG_CFLAGS := $(CFLAGS) -g -Og
 RELEASE_CFLAGS := $(CFLAGS) -O3 -DNDEBUG
+# RELEASE_CFLAGS += -m64 -nostdlib -fno-pic -fno-builtin -fno-stack-protector
+# RELEASE_CFLAGS += -mcmodel=kernel -mno-80387 -mno-mmx -mno-sse -mno-sse2 -mno-red-zone
 
 SRCS := plreadln.c plreadln_wordmk.c plreadln_intellisense.c
 OBJS := $(SRCS:%.c=build/%.o)
 
-.PHONY: all lib test clean
+.PHONY: release lib test clean
 
-all: CFLAGS := $(RELEASE_CFLAGS)
-all: $(OBJS)
+release: CFLAGS := $(RELEASE_CFLAGS)
+release: $(OBJS)
 
-lib: all
+lib: release
 	ar rv libplreadln.a $(OBJS)
 
 test: CFLAGS := $(DEBUG_CFLAGS)

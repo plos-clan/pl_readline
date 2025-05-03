@@ -1,7 +1,6 @@
 #include <pl_readline.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <termio.h>
 #include <unistd.h>
@@ -70,17 +69,31 @@ void flush(void) { fflush(stdout); }
 
 void handle_tab(char *buf, pl_readline_words_t words) {
     (void)buf;
-    pl_readline_word_maker_add("ls", words, true, ' ');
-    pl_readline_word_maker_add("echo", words, true, ' ');
-    pl_readline_word_maker_add("cat", words, true, ' ');
-    pl_readline_word_maker_add("ps", words, true, ' ');
-    pl_readline_word_maker_add("foo", words, false, ' ');
-    pl_readline_word_maker_add("bar", words, false, ' ');
+    pl_readline_word_maker_add("ls", words, true, PL_COLOR_GREEN, ' ');
+    pl_readline_word_maker_add("echo", words, true, PL_COLOR_BLUE, ' ');
+    pl_readline_word_maker_add("cat", words, true, PL_COLOR_RED, ' ');
+    pl_readline_word_maker_add("ps", words, true, PL_COLOR_CYAN, ' ');
+    pl_readline_word_maker_add("cd", words, true, PL_COLOR_MAGENTA, ' ');
+    pl_readline_word_maker_add("grep", words, true, PL_COLOR_YELLOW, ' ');
+    pl_readline_word_maker_add("find", words, true, PL_COLOR_GREEN, ' ');
+    pl_readline_word_maker_add("tar", words, true, PL_COLOR_BLUE, ' ');
+    pl_readline_word_maker_add("mkdir", words, true, PL_COLOR_RED, ' ');
+    pl_readline_word_maker_add("rm", words, true, PL_COLOR_CYAN, ' ');
+    pl_readline_word_maker_add("cp", words, true, PL_COLOR_MAGENTA, ' ');
+    pl_readline_word_maker_add("mv", words, true, PL_COLOR_YELLOW, ' ');
+    pl_readline_word_maker_add("touch", words, true, PL_COLOR_GREEN, ' ');
+    pl_readline_word_maker_add("clear", words, true, PL_COLOR_BLUE, ' ');
+    pl_readline_word_maker_add("exit", words, true, PL_COLOR_RED, ' ');
+    pl_readline_word_maker_add("foo", words, false, PL_COLOR_YELLOW, ' ');
+    pl_readline_word_maker_add("bar", words, false, PL_COLOR_MAGENTA, ' ');
 }
 
 int main(void) {
     pl_readline_t pl =
         pl_readline_init(getch, (void (*)(int))putchar, flush, handle_tab);
+    printf("\nTyping Test: Commands are shown in color as you type\n");
+    printf("Try typing: ls, cd, mkdir, grep, etc...\n");
+    printf("Press Tab to see all available commands\n\n");
     while (1) {
         const char *buffer = pl_readline(pl, "\033[1;32m[user@localhost]$\033[0m ");
         printf("Your input: %s\n", buffer);

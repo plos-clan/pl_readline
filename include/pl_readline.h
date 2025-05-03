@@ -6,6 +6,17 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+// Color definitions for terminal output
+#define PL_COLOR_RESET    0
+#define PL_COLOR_BLACK    30
+#define PL_COLOR_RED      31
+#define PL_COLOR_GREEN    32
+#define PL_COLOR_YELLOW   33
+#define PL_COLOR_BLUE     34
+#define PL_COLOR_MAGENTA  35
+#define PL_COLOR_CYAN     36
+#define PL_COLOR_WHITE    37
+
 #define PL_READLINE_KEY_UP 0xff00
 #define PL_READLINE_KEY_DOWN 0xff01
 #define PL_READLINE_KEY_LEFT 0xff02
@@ -27,40 +38,41 @@
 #define PL_READLINE_DEFAULT_BUFFER_LEN 32
 
 typedef struct pl_readline_word {
-    char *word; // 词组
+    char *word; // u8bcdu7ec4
     /**
-      如果first为true，
-      这个word必须在第一个参数的位置的时候才能得到补全
-      如abc 则必须输入"ab"然后按tab，才会有可能有"abc"
-      如果是“qwe ab”则不会补全"qwe abc"，除非first为false.
+      u5982u679cfirstu4e3atrueuff0c
+      u8fd9u4e2awordu5fc5u987bu5728u7b2cu4e00u4e2au53c2u6570u7684u4f4du7f6eu7684u65f6u5019u624du80fdu5f97u5230u8865u5168
+      u5982abc u5219u5fc5u987bu8f93u5165"ab"u7136u540eu6309tabuff0cu624du4f1au6709u53efu80fdu6709"abc"
+      u5982u679cu662f"qwe ab"u5219u4e0du4f1au8865u5168"qwe abc"uff0cu9664u975efirstu4e3afalse.
     */
     bool first;
-    char sep; // 分隔符
+    char sep; // u5206u9694u7b26
+    int color; // ANSI color code (e.g., PL_COLOR_GREEN)
 } pl_readline_word;
 
 typedef struct pl_readline_words {
-    size_t len;              // 词组数量
-    size_t max_len;          // 词组最大数量
-    pl_readline_word *words; // 词组列表
+    size_t len;              // u8bcdu7ec4u6570u91cf
+    size_t max_len;          // u8bcdu7ec4u6700u5927u6570u91cf
+    pl_readline_word *words; // u8bcdu7ec4u5217u8868
 } *pl_readline_words_t;
 
 typedef struct pl_readline {
-    int (*pl_readline_hal_getch)(void);    // 输入函数
-    void (*pl_readline_hal_putch)(int ch); // 输出函数
-    void (*pl_readline_hal_flush)(void);   // 刷新函数
+    int (*pl_readline_hal_getch)(void);    // u8f93u5165u51fdu6570
+    void (*pl_readline_hal_putch)(int ch); // u8f93u51fau51fdu6570
+    void (*pl_readline_hal_flush)(void);   // u5237u65b0u51fdu6570
     void (*pl_readline_get_words)(char *buf,
-                                  pl_readline_words_t words); // 获取词组列表
-    char *buffer;         // 输入缓冲区
-    char *input_buf;      // 输入缓冲区（补全的前缀）
-    size_t ptr;           // 输入缓冲区指针
-    size_t input_ptr; // 输入缓冲区（补全的前缀）指针
-    size_t maxlen;        // 缓冲区最大长度
-    size_t length;        // 输入缓冲区长度（已经输入的字符数）
-    list_t history;       // 历史记录列表
-    int history_idx;      // 历史记录指针
-    char *prompt;         // 提示符
-    bool intellisense_mode;  // 智能补全模式
-    char *intellisense_word; // 智能补全词组
+                                  pl_readline_words_t words); // u83b7u53d6u8bcdu7ec4u5217u8868
+    char *buffer;         // u8f93u5165u7f13u51b2u533a
+    char *input_buf;      // u8f93u5165u7f13u51b2u533auff08u8865u5168u7684u524du7f00uff09
+    size_t ptr;           // u8f93u5165u7f13u51b2u533au6307u9488
+    size_t input_ptr; // u8f93u5165u7f13u51b2u533auff08u8865u5168u7684u524du7f00uff09u6307u9488
+    size_t maxlen;        // u7f13u51b2u533au6700u5927u957fu5ea6
+    size_t length;        // u8f93u5165u7f13u51b2u533au957fu5ea6uff08u5df2u7ecfu8f93u5165u7684u5b57u7b26u6570uff09
+    list_t history;       // u5386u53f2u8bb0u5f55u5217u8868
+    int history_idx;      // u5386u53f2u8bb0u5f55u6307u9488
+    char *prompt;         // u63d0u793au7b26
+    bool intellisense_mode;  // u667au80fdu8865u5168u6a21u5f0f
+    char *intellisense_word; // u667au80fdu8865u5168u8bcdu7ec4
 } *pl_readline_t;
 
 pl_readline_words_t pl_readline_word_maker_init(void);
@@ -73,7 +85,7 @@ pl_readline_word pl_readline_intellisense(_self, pl_readline_words_t words);
 void pl_readline_insert_char_and_view(_self, char ch);
 void pl_readline_insert_char(char *str, char ch, int idx);
 int pl_readline_word_maker_add(char *word, pl_readline_words_t words,
-                               bool is_first, char sep);
+                               bool is_first, int color, char sep);
 void pl_readline_print(_self, char *str);
 void pl_readline_intellisense_insert(_self, pl_readline_word words);
 void pl_readline_word_maker_destroy(pl_readline_words_t words);

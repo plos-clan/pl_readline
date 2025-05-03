@@ -135,6 +135,7 @@ pl_readline_word pl_readline_intellisense(_self,
             if (!self->intellisense_mode) { // 如果是需要输出模式
                 pl_readline_word_maker_add(words->words[i].word, words_temp,
                                            false,
+                                           words->words[i].color,
                                            0); // 加入临时词库
             } else {
                 if (times == 0) {                    // 第一次输出
@@ -142,7 +143,15 @@ pl_readline_word pl_readline_intellisense(_self,
                 }
                 if (times)                        // 不是第一次输出
                     pl_readline_print(self, " "); // 空格分隔
+                if (words->words[i].color != PL_COLOR_RESET) {
+                    char color_str[16];
+                    sprintf(color_str, "\033[%dm", words->words[i].color);
+                    pl_readline_print(self, color_str); // 设置颜色
+                }
                 pl_readline_print(self, words->words[i].word); // 输出单词
+                if (words->words[i].color != PL_COLOR_RESET) {
+                    pl_readline_print(self, "\033[0m"); // 重置颜色
+                }
                 times++; // 输出次数加一
             }
         }

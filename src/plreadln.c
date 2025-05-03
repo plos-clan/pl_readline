@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+
 int pl_readline_add_history(_self, char *line) {
   list_prepend(self->history, strdup(line));
   return PL_READLINE_SUCCESS;
@@ -98,6 +100,101 @@ static void pl_readline_reset(_self, int p, int len) {
   }
 }
 
+// Helper function to find the color of a command
+static int get_command_color(_self, const char *word) {
+    // Initialize a temporary word list to hold commands
+    pl_readline_words_t word_list = pl_readline_word_maker_init();
+    
+    // Get all defined commands
+    self->pl_readline_get_words("", word_list);
+    
+    // Check if the word matches any of our defined commands
+    for (size_t i = 0; i < word_list->len; i++) {
+        if (strcmp(word_list->words[i].word, word) == 0) {
+            int color = word_list->words[i].color;
+            pl_readline_word_maker_destroy(word_list);
+            return color;
+        }
+    }
+    
+    // Clean up
+    pl_readline_word_maker_destroy(word_list);
+    return PL_COLOR_RESET; // Default color
+}
+
+// Function to redisplay the buffer with colorized commands
+static void redisplay_buffer_with_colors(_self) {
+    // Save original cursor position
+    size_t original_ptr = self->ptr;
+    
+    // Reset cursor to beginning of line
+    pl_readline_reset(self, self->ptr, self->length);
+    
+    // Display prompt
+    pl_readline_print(self, self->prompt);
+    
+    // Parse and colorize each word in the buffer
+    char *buffer_copy = strdup(self->buffer);
+    char *token_str = strtok(buffer_copy, " ");
+    size_t position = 0;
+    
+    // Handle the case when we have no tokens
+    if (token_str == NULL) {
+        free(buffer_copy);
+        return;
+    }
+    
+    // Process each token
+    while (token_str != NULL) {
+        int color = get_command_color(self, token_str);
+        
+        if (color != PL_COLOR_RESET) {
+            // Apply color
+            char color_str[16];
+            sprintf(color_str, "\033[%dm", color);
+            pl_readline_print(self, color_str);
+        }
+        
+        // Print the token
+        pl_readline_print(self, token_str);
+        position += strlen(token_str);
+        
+        if (color != PL_COLOR_RESET) {
+            // Reset color
+            pl_readline_print(self, "\033[0m");
+        }
+        
+        // Get next token
+        token_str = strtok(NULL, " ");
+        
+        // Add space if there are more tokens or if the original buffer ends with space
+        if (token_str != NULL) {
+            pl_readline_print(self, " ");
+            position += 1; // Account for the space
+        }
+    }
+    
+    free(buffer_copy);
+    
+    // If the original buffer ends with space, add it
+    if (self->length > 0 && self->buffer[self->length-1] == ' ') {
+        pl_readline_print(self, " ");
+        position += 1;
+    }
+    
+    // Move cursor back to the correct position
+    if (position > original_ptr) {
+        char buf[32];
+        sprintf(buf, "\033[%zuD", position - original_ptr);
+        pl_readline_print(self, buf);
+    } else if (position < original_ptr) {
+        // Should not happen, but just in case
+        char buf[32];
+        sprintf(buf, "\033[%zuC", original_ptr - position);
+        pl_readline_print(self, buf);
+    }
+}
+
 static void pl_readline_to_the_end(_self, int n) {
   char buf[255] = {0};
   sprintf(buf, "\033[%dC", n);
@@ -141,19 +238,58 @@ void pl_readline_insert_char_and_view(_self, char ch) {
     self->buffer = realloc(self->buffer, self->maxlen);
     self->input_buf = realloc(self->input_buf, self->maxlen);
     self->buffer[self->length] = '\0';
-    if (!self->buffer)
-      abort(); // 炸了算了
+    if (!self->buffer) return; // 炸了算了
   }
   pl_readline_insert_char(self->buffer, ch, self->ptr++);
   self->length++;
-  int n = self->length - self->ptr;
-  if (n) {
-    char buf[255] = {0};
-    pl_readline_print(self, self->buffer + self->ptr - 1);
-    sprintf(buf, "\033[%dD", n);
-    pl_readline_print(self, buf);
+  
+  // Check if we have a complete word that needs coloring
+  int should_colorize = 0;
+  
+  // Only check for keyword completion when not pressing space/newline
+  if (ch != ' ' && ch != '\n') {
+    // Create a temporary buffer for the current word
+    char current_word[256] = {0};
+    size_t word_start = self->ptr;
+    size_t word_end = self->ptr;
+    
+    // Find the start of the current word (search backward until space)
+    while (word_start > 0 && self->buffer[word_start-1] != ' ') {
+      word_start--;
+    }
+    
+    // Find the end of the current word (search forward until space or null)
+    while (word_end < self->length && self->buffer[word_end] != ' ' && self->buffer[word_end] != '\0') {
+      word_end++;
+    }
+    
+    // Copy the current word
+    if (word_start < word_end) {
+      strncpy(current_word, self->buffer + word_start, word_end - word_start);
+      current_word[word_end - word_start] = '\0';
+      
+      // Check if this word matches a keyword
+      int color = get_command_color(self, current_word);
+      if (color != PL_COLOR_RESET) {
+        should_colorize = 1;
+      }
+    }
+  }
+  
+  // Use colorized redisplay when needed
+  if (ch == ' ' || ch == '\n' || should_colorize) {
+    redisplay_buffer_with_colors(self);
   } else {
-    self->pl_readline_hal_putch(ch);
+    // Normal character display logic
+    int n = self->length - self->ptr;
+    if (n) {
+      char buf[255] = {0};
+      pl_readline_print(self, self->buffer + self->ptr - 1);
+      sprintf(buf, "\033[%dD", n);
+      pl_readline_print(self, buf);
+    } else {
+      self->pl_readline_hal_putch(ch);
+    }
   }
 }
 
@@ -306,18 +442,17 @@ int pl_readline_handle_key(_self, int ch) {
     pl_readline_word word_seletion = pl_readline_intellisense(self, words);
     if (word_seletion.word) {
       pl_readline_intellisense_insert(self, word_seletion);
+      // Redisplay with colors after completion
+      redisplay_buffer_with_colors(self);
       self->pl_readline_hal_flush();
     } else if (word_seletion.first) {
       pl_readline_print(self, "\n");
       pl_readline_print(self, self->prompt);
       self->buffer[self->length] = '\0';
-      pl_readline_print(self, self->buffer);
-      int n = self->length - self->ptr;
-      char buf[255] = {0};
-      if (n) {
-        sprintf(buf, "\033[%dD", n);
-        pl_readline_print(self, buf);
-      }
+      
+      // Use colorized display instead of regular display
+      redisplay_buffer_with_colors(self);
+      
       self->pl_readline_hal_flush();
     }
     break;
