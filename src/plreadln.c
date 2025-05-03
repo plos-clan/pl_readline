@@ -101,15 +101,21 @@ static void pl_readline_reset(_self, int p, int len) {
 }
 
 // Helper function to find the color of a command
-static int get_command_color(_self, const char *word) {
+static int get_command_color(_self, const char *word, int is_first_word) {
     // Initialize a temporary word list to hold commands
     pl_readline_words_t word_list = pl_readline_word_maker_init();
     
     // Get all defined commands
     self->pl_readline_get_words("", word_list);
     
-    // Check if the word matches any of our defined commands
+    // Check if the word exactly matches any of our defined commands
     for (size_t i = 0; i < word_list->len; i++) {
+        // Skip commands that require first position but aren't first
+        if (word_list->words[i].first && !is_first_word) {
+            continue;
+        }
+        
+        // Check exact match
         if (strcmp(word_list->words[i].word, word) == 0) {
             int color = word_list->words[i].color;
             pl_readline_word_maker_destroy(word_list);
@@ -207,7 +213,10 @@ static void redisplay_buffer_with_colors(_self, int show_prompt) {
             display_position++;
         } else {
             // This is a word
-            int color = get_command_color(self, words[i]);
+            // Check if this is the first word in the line
+            int is_first = (i == 0 || (i > 0 && words[i-1] == NULL && i == 1));
+            
+            int color = get_command_color(self, words[i], is_first);
             
             if (color != PL_COLOR_RESET) {
                 // Apply color
@@ -299,8 +308,8 @@ void pl_readline_insert_char_and_view(_self, char ch) {
   pl_readline_insert_char(self->buffer, ch, self->ptr++);
   self->length++;
   
-  // Check if we have a complete word that needs coloring
-  int should_colorize = 0;
+  // Check if we have a complete word that needs coloring (no longer needed - always redraw)
+  // Only checking word boundaries for completeness
   
   // Only check for keyword completion when not pressing space/newline
   if (ch != ' ' && ch != '\n') {
@@ -324,29 +333,16 @@ void pl_readline_insert_char_and_view(_self, char ch) {
       strncpy(current_word, self->buffer + word_start, word_end - word_start);
       current_word[word_end - word_start] = '\0';
       
-      // Check if this word matches a keyword
-      int color = get_command_color(self, current_word);
-      if (color != PL_COLOR_RESET) {
-        should_colorize = 1;
-      }
+      // Check if this is the first word in the line
+      int is_first_word = (word_start == 0);
+      
+      // We no longer need to set should_colorize flag since we always redraw
+      get_command_color(self, current_word, is_first_word);
     }
   }
   
-  // Use colorized redisplay when needed
-  if (ch == ' ' || ch == '\n' || should_colorize) {
-    redisplay_buffer_with_colors(self, 0); // Don't show prompt during edit
-  } else {
-    // Normal character display logic
-    int n = self->length - self->ptr;
-    if (n) {
-      char buf[255] = {0};
-      pl_readline_print(self, self->buffer + self->ptr - 1);
-      sprintf(buf, "\033[%dD", n);
-      pl_readline_print(self, buf);
-    } else {
-      self->pl_readline_hal_putch(ch);
-    }
-  }
+  // Use colorized redisplay for all edits
+  redisplay_buffer_with_colors(self, 0); // Don't show prompt during edit
 }
 
 void pl_readline_next_line(_self) {
@@ -394,7 +390,6 @@ int pl_readline_handle_key(_self, int ch) {
     if (!self->ptr) // 光标在最左边
       return PL_READLINE_NOT_FINISHED;
     self->ptr--;
-    pl_readline_print(self, "\033[D");
     if (self->buffer[self->ptr] == ' ') {
       memset(self->input_buf, 0, self->maxlen);
       // 光标移动到前一个空格
@@ -413,12 +408,14 @@ int pl_readline_handle_key(_self, int ch) {
     } else {
       self->input_ptr--;
     }
+    
+    // Redraw the line with updated coloring
+    redisplay_buffer_with_colors(self, 0);
     break;
   case PL_READLINE_KEY_RIGHT:
     if (self->ptr == self->length) // 光标在最右边
       return PL_READLINE_NOT_FINISHED;
     self->ptr++;
-    pl_readline_print(self, "\033[C");
     if (self->buffer[self->ptr - 1] == ' ') {
       memset(self->input_buf, 0, self->maxlen);
       // 光标移动到前一个空格
@@ -439,6 +436,9 @@ int pl_readline_handle_key(_self, int ch) {
     } else {
       self->input_ptr++;
     }
+    
+    // Redraw the line with updated coloring
+    redisplay_buffer_with_colors(self, 0);
     break;
   case PL_READLINE_KEY_BACKSPACE:
     if (!self->ptr) // 光标在最左边
@@ -467,21 +467,8 @@ int pl_readline_handle_key(_self, int ch) {
 
     self->length--;
 
-    int n = self->length - self->ptr;
-    if (n) {
-      char buf[255] = {0};
-      sprintf(buf, "\033[%dC\033[D ", n);
-      pl_readline_print(self, buf);
-
-      sprintf(buf, "\033[%dD", n);
-      pl_readline_print(self, buf);
-      pl_readline_print(self, "\033[D");
-      pl_readline_print(self, self->buffer + self->ptr);
-      pl_readline_print(self, buf);
-
-    } else {
-      pl_readline_print(self, "\b \b");
-    }
+    // Redraw the entire line with updated colors
+    redisplay_buffer_with_colors(self, 0);
     break;
   case PL_READLINE_KEY_ENTER:
     pl_readline_to_the_end(self, self->length - self->ptr);

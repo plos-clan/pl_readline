@@ -81,6 +81,7 @@ void handle_tab(char *buf, pl_readline_words_t words) {
 int main(void) {
     pl_readline_t pl =
         pl_readline_init(getch, (void (*)(int))putchar, flush, handle_tab);
+    printf("Type 'exit' to quit\n\n");
     while (1) {
         const char *buffer = pl_readline(pl, "\033[1;32m[user@localhost]$\033[0m ");
         printf("Your input: %s\n", buffer);
