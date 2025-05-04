@@ -104,17 +104,17 @@ static void pl_readline_reset(_self, int p, int len) {
 static int get_command_color(_self, const char *word, int is_first_word) {
     // Initialize a temporary word list to hold commands
     pl_readline_words_t word_list = pl_readline_word_maker_init();
-    
+
     // Get all defined commands
     self->pl_readline_get_words("", word_list);
-    
+
     // Check if the word exactly matches any of our defined commands
     for (size_t i = 0; i < word_list->len; i++) {
         // Skip commands that require first position but aren't first
         if (word_list->words[i].first && !is_first_word) {
             continue;
         }
-        
+
         // Check exact match
         if (strcmp(word_list->words[i].word, word) == 0) {
             int color = word_list->words[i].color;
@@ -122,7 +122,7 @@ static int get_command_color(_self, const char *word, int is_first_word) {
             return color;
         }
     }
-    
+
     // Clean up
     pl_readline_word_maker_destroy(word_list);
     return PL_COLOR_RESET; // Default color
@@ -133,7 +133,7 @@ static void redisplay_buffer_with_colors(_self, int show_prompt) {
     // Save original cursor position
     size_t original_ptr = self->ptr;
     size_t prompt_len = 0;
-    
+
     // Calculate prompt length (only if shown)
     if (self->prompt) {
         // Count visible characters in the prompt (ignoring ANSI escape sequences)
@@ -149,10 +149,10 @@ static void redisplay_buffer_with_colors(_self, int show_prompt) {
             p++;
         }
     }
-    
+
     // Move cursor back to start of line using absolute positioning
     pl_readline_print(self, "\r");
-    
+
     // Display prompt only if requested
     if (show_prompt) {
         pl_readline_print(self, self->prompt);
@@ -162,29 +162,29 @@ static void redisplay_buffer_with_colors(_self, int show_prompt) {
         sprintf(forward_buf, "\033[%zuC", prompt_len);
         pl_readline_print(self, forward_buf);
     }
-    
+
     // Track position considering the prompt if shown
     size_t display_position = prompt_len; // Start after prompt
-    
+
     // Clear the line after cursor
     pl_readline_print(self, "\033[K");
-    
+
     // Parse and colorize each word in the buffer
     char *buffer_copy = strdup(self->buffer);
     size_t buffer_len = strlen(buffer_copy);
-    
+
     // Handle empty buffer
     if (buffer_len == 0) {
         free(buffer_copy);
         return;
     }
-    
+
     // Get all tokens and preserve spaces
     char *words[256] = {0};
     int word_count = 0;
     char *p = buffer_copy;
     char *word_start = p;
-    
+
     // Parse words and spaces
     while (*p) {
         if (*p == ' ') {
@@ -199,12 +199,12 @@ static void redisplay_buffer_with_colors(_self, int show_prompt) {
         }
         p++;
     }
-    
+
     // Don't forget the last word if it's not empty
     if (*word_start) {
         words[word_count++] = word_start;
     }
-    
+
     // Render all words and spaces with correct coloring
     for (int i = 0; i < word_count; i++) {
         if (words[i] == NULL) {
@@ -215,43 +215,43 @@ static void redisplay_buffer_with_colors(_self, int show_prompt) {
             // This is a word
             // Check if this is the first word in the line
             int is_first = (i == 0 || (i > 0 && words[i-1] == NULL && i == 1));
-            
+
             int color = get_command_color(self, words[i], is_first);
-            
+
             if (color != PL_COLOR_RESET) {
                 // Apply color
                 char color_str[16];
                 sprintf(color_str, "\033[%dm", color);
                 pl_readline_print(self, color_str);
             }
-            
+
             // Print the word
             pl_readline_print(self, words[i]);
             display_position += strlen(words[i]);
-            
+
             if (color != PL_COLOR_RESET) {
                 // Reset color
                 pl_readline_print(self, "\033[0m");
             }
         }
     }
-    
+
     free(buffer_copy);
-    
+
     // If original buffer ends with space, print it
     if (self->length > 0 && self->buffer[self->length-1] == ' ') {
         pl_readline_print(self, " ");
         display_position++;
     }
-    
+
     // Calculate cursor position (prompt + original_ptr)
     size_t target_position = prompt_len + original_ptr;
-    
+
     // Position cursor correctly
     if (display_position != target_position) {
         // Use absolute positioning from the left edge
         pl_readline_print(self, "\r");
-        
+
         if (target_position > 0) {
             char move_buf[32];
             sprintf(move_buf, "\033[%zuC", target_position);
@@ -307,40 +307,40 @@ void pl_readline_insert_char_and_view(_self, char ch) {
   }
   pl_readline_insert_char(self->buffer, ch, self->ptr++);
   self->length++;
-  
+
   // Check if we have a complete word that needs coloring (no longer needed - always redraw)
   // Only checking word boundaries for completeness
-  
+
   // Only check for keyword completion when not pressing space/newline
   if (ch != ' ' && ch != '\n') {
     // Create a temporary buffer for the current word
     char current_word[256] = {0};
     size_t word_start = self->ptr;
     size_t word_end = self->ptr;
-    
+
     // Find the start of the current word (search backward until space)
     while (word_start > 0 && self->buffer[word_start-1] != ' ') {
       word_start--;
     }
-    
+
     // Find the end of the current word (search forward until space or null)
     while (word_end < self->length && self->buffer[word_end] != ' ' && self->buffer[word_end] != '\0') {
       word_end++;
     }
-    
+
     // Copy the current word
     if (word_start < word_end) {
       strncpy(current_word, self->buffer + word_start, word_end - word_start);
       current_word[word_end - word_start] = '\0';
-      
+
       // Check if this is the first word in the line
       int is_first_word = (word_start == 0);
-      
+
       // We no longer need to set should_colorize flag since we always redraw
       get_command_color(self, current_word, is_first_word);
     }
   }
-  
+
   // Use colorized redisplay for all edits
   redisplay_buffer_with_colors(self, 0); // Don't show prompt during edit
 }
@@ -408,7 +408,7 @@ int pl_readline_handle_key(_self, int ch) {
     } else {
       self->input_ptr--;
     }
-    
+
     // Redraw the line with updated coloring
     redisplay_buffer_with_colors(self, 0);
     break;
@@ -436,7 +436,7 @@ int pl_readline_handle_key(_self, int ch) {
     } else {
       self->input_ptr++;
     }
-    
+
     // Redraw the line with updated coloring
     redisplay_buffer_with_colors(self, 0);
     break;
@@ -492,10 +492,10 @@ int pl_readline_handle_key(_self, int ch) {
       pl_readline_print(self, "\n");
       pl_readline_print(self, self->prompt);
       self->buffer[self->length] = '\0';
-      
+
       // Use colorized display without showing prompt since we printed it already
       redisplay_buffer_with_colors(self, 0);
-      
+
       self->pl_readline_hal_flush();
     }
     break;
@@ -504,6 +504,12 @@ int pl_readline_handle_key(_self, int ch) {
   case PL_READLINE_KEY_HOME:
     pl_readline_reset(self, self->ptr, 0);
     self->ptr = 0;
+    int i = 0;
+    for (i = 0; self->buffer[i] != '\0' && self->buffer[i] != ' '; i++) {
+        self->input_buf[i] = self->buffer[i];
+    }
+    self->input_buf[i] = '\0';
+    self->input_ptr = 0;
     break;
   case PL_READLINE_KEY_END: {
     size_t diff = self->length - self->ptr;

@@ -58,7 +58,7 @@ typedef struct pl_readline_words {
 
 typedef struct pl_readline {
     int (*pl_readline_hal_getch)(void);    // 输入函数
-    void (*pl_readline_hal_putch)(int ch); // 输出函数
+    int (*pl_readline_hal_putch)(int ch);  // 输出函数
     void (*pl_readline_hal_flush)(void);   // 刷新函数
     void (*pl_readline_get_words)(char *buf,
                                   pl_readline_words_t words); // 获取词组列表
@@ -77,7 +77,7 @@ typedef struct pl_readline {
 
 pl_readline_words_t pl_readline_word_maker_init(void);
 pl_readline_t pl_readline_init(
-    int (*pl_readline_hal_getch)(void), void (*pl_readline_hal_putch)(int ch),
+    int (*pl_readline_hal_getch)(void), int (*pl_readline_hal_putch)(int ch),
     void (*pl_readline_hal_flush)(void),
     void (*pl_readline_get_words)(char *buf, pl_readline_words_t words));
 const char *pl_readline(_self, char *prompt);
