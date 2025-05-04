@@ -85,7 +85,24 @@ int main(void) {
     while (1) {
         const char *buffer = pl_readline(pl, "\033[1;32m[user@localhost]$\033[0m ");
         printf("Your input: %s\n", buffer);
-        if (strcmp(buffer, "exit") == 0)
+
+        // Check if it is a valid exit command
+        int is_exit = 1;
+        if (strncmp(buffer, "exit", 4) == 0) {
+            // Check if there are only spaces after "exit"
+            const char *p = buffer + 4;
+            while (*p != '\0') {
+                if (*p != ' ') {
+                    is_exit = 0;
+                    break;
+                }
+                p++;
+            }
+        } else {
+            is_exit = 0;
+        }
+
+        if (is_exit)
             break;
     }
     pl_readline_uninit(pl);

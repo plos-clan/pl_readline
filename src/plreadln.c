@@ -33,7 +33,7 @@ int pl_readline_modify_history(_self) {
 }
 
 pl_readline_t pl_readline_init(
-    int (*pl_readline_hal_getch)(void), void (*pl_readline_hal_putch)(int ch),
+    int (*pl_readline_hal_getch)(void), int (*pl_readline_hal_putch)(int ch),
     void (*pl_readline_hal_flush)(void),
     void (*pl_readline_get_words)(char *buf, pl_readline_words_t words)) {
   pl_readline_t plreadln = malloc(sizeof(struct pl_readline));
