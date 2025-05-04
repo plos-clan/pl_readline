@@ -18,9 +18,9 @@
 
 pl_readline_words_t pl_readline_word_maker_init(void) {
     pl_readline_words_t words = malloc(sizeof(struct pl_readline_words));
-    words->len = 0;      // initial length
-    words->max_len = 16; // initial max length
-    words->words = malloc(words->max_len * sizeof(pl_readline_word));
+    words->len                = 0;  // initial length
+    words->max_len            = 16; // initial max length
+    words->words              = malloc(words->max_len * sizeof(pl_readline_word));
     assert(words->words != NULL);
     return words;
 }
@@ -34,17 +34,16 @@ void pl_readline_word_maker_destroy(pl_readline_words_t words) {
     free(words);
 }
 
-int pl_readline_word_maker_add(char *word, pl_readline_words_t words,
-                               bool is_first, int color, char sep) {
+int pl_readline_word_maker_add(char *word, pl_readline_words_t words, bool is_first, int color,
+                               char sep) {
     if (words->len >= words->max_len) {
         words->max_len *= 2;
-        words->words =
-            realloc(words->words, words->max_len * sizeof(pl_readline_word));
+        words->words    = realloc(words->words, words->max_len * sizeof(pl_readline_word));
         assert(words->words != NULL);
     }
     words->words[words->len].first = is_first;
-    words->words[words->len].word = strdup(word);
-    words->words[words->len].sep = sep;
+    words->words[words->len].word  = strdup(word);
+    words->words[words->len].sep   = sep;
     words->words[words->len].color = color;
     words->len++;
     return 0;
