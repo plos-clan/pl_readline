@@ -73,7 +73,7 @@ void handle_tab(char *buf, pl_readline_words_t words) {
     pl_readline_word_maker_add("echo", words, true, PL_COLOR_BLUE, ' ');
     pl_readline_word_maker_add("cat", words, true, PL_COLOR_RED, ' ');
     pl_readline_word_maker_add("ps", words, true, PL_COLOR_CYAN, ' ');
-    pl_readline_word_maker_add("exit", words, true, PL_COLOR_RED, ' ');
+    pl_readline_word_maker_add("exit", words, true, PL_COLOR_BLUE, ' ');
     pl_readline_word_maker_add("foo", words, false, PL_COLOR_YELLOW, ' ');
     pl_readline_word_maker_add("bar", words, false, PL_COLOR_MAGENTA, ' ');
 }
@@ -81,7 +81,7 @@ void handle_tab(char *buf, pl_readline_words_t words) {
 int main(void) {
     pl_readline_t pl =
         pl_readline_init(getch, putchar, flush, handle_tab);
-    printf("Type 'exit' to quit\n\n");
+    printf("Type 'exit' to quit!\n");
     while (1) {
         const char *buffer = pl_readline(pl, "\033[1;32m[user@localhost]$\033[0m ");
         printf("Your input: %s\n", buffer);
@@ -102,8 +102,7 @@ int main(void) {
             is_exit = 0;
         }
 
-        if (is_exit)
-            break;
+        if (is_exit) break;
     }
     pl_readline_uninit(pl);
 }

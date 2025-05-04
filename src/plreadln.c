@@ -106,7 +106,7 @@ static int get_command_color(_self, const char *word, int is_first_word) {
     pl_readline_words_t word_list = pl_readline_word_maker_init();
 
     // Get all defined commands
-    self->pl_readline_get_words("", word_list);
+    self->pl_readline_get_words(self->input_buf, word_list);
 
     // Check if the word exactly matches any of our defined commands
     for (size_t i = 0; i < word_list->len; i++) {
