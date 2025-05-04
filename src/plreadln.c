@@ -17,8 +17,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-
 int pl_readline_add_history(_self, char *line) {
   list_prepend(self->history, strdup(line));
   return PL_READLINE_SUCCESS;
@@ -64,6 +62,7 @@ void pl_readline_uninit(_self) {
   free(self->input_buf);
   free(self);
 }
+
 #if PL_ENABLE_HISTORY
 void pl_readline_save_history(_self, const char *filename) {
     FILE *fp = fopen(filename, "w");
@@ -105,6 +104,7 @@ void pl_readline_load_history(_self, const char *filename) {
     fclose(fp);
 }
 #endif
+
 void pl_readline_insert_char(char *str, char ch, int idx) {
   int len = strlen(str) + 1; // 还要复制字符串结束符
   if (len)

@@ -78,18 +78,19 @@ static int count_slash(const char *buf) {
     }
     return count;
 }
+
 void handle_tab(char *buf, pl_readline_words_t words) {
     pl_readline_word_maker_add("ls", words, true, PL_COLOR_GREEN, ' ');
     pl_readline_word_maker_add("echo", words, true, PL_COLOR_BLUE, ' ');
     pl_readline_word_maker_add("cat", words, true, PL_COLOR_RED, ' ');
     pl_readline_word_maker_add("ps", words, true, PL_COLOR_CYAN, ' ');
     pl_readline_word_maker_add("exit", words, true, PL_COLOR_BLUE, ' ');
+    pl_readline_word_maker_add("history", words, true, PL_COLOR_CYAN, ' ');
     pl_readline_word_maker_add("foo", words, false, PL_COLOR_YELLOW, ' ');
     pl_readline_word_maker_add("bar", words, false, PL_COLOR_MAGENTA, ' ');
-    pl_readline_word_maker_add("history", words, false, PL_COLOR_CYAN, ' ');
 
     int current = words->len;
-    char *fake_dirs[] = {"/home","/usr","/home/racaos","/usr/local", NULL};
+    char *fake_dirs[] = {"/home", "/usr", "/home/racaos", "/usr/local", NULL};
     // 匹配buf，看看有没有匹配的
     for (int i = 0; fake_dirs[i] != NULL; i++) {
       if (strncmp(buf, fake_dirs[i], strlen(buf)) == 0 &&
