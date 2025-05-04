@@ -64,7 +64,47 @@ void pl_readline_uninit(_self) {
   free(self->input_buf);
   free(self);
 }
+#if PL_ENABLE_HISTORY
+void pl_readline_save_history(_self, const char *filename) {
+    FILE *fp = fopen(filename, "w");
+    if (!fp) return;
+    // Write history in reverse (oldest first)
+    list_t node = self->history;
+    // Find the last node
+    while (node && node->next) node = node->next;
+    // Write from last to first, skipping the empty last entry
+    while (node) {
+        if (node->data && ((char*)node->data)[0] != '\0')
+            fprintf(fp, "%s\n", (char*)node->data);
+        node = node->prev;
+    }
+    fclose(fp);
+}
 
+void pl_readline_load_history(_self, const char *filename) {
+    FILE *fp = fopen(filename, "r");
+    if (!fp) return;
+    // Read each line and prepend to history (so oldest ends up at tail)
+    fseek(fp, 0, SEEK_END);
+    long file_size = ftell(fp);
+    fseek(fp, 0, SEEK_SET);
+    char *buffer = malloc(file_size + 1);
+    fread(buffer, 1, file_size, fp);
+    buffer[file_size] = '\0';
+    // 按行分割
+    char *line = strtok(buffer, "\n");
+    while (line) {
+        self->history_idx = 0;
+        list_t node = list_nth(self->history, self->history_idx);
+        free(node->data);
+        node->data = strdup(line);
+        line = strtok(NULL, "\n");
+        pl_readline_add_history(self, "");
+    }
+    free(buffer);
+    fclose(fp);
+}
+#endif
 void pl_readline_insert_char(char *str, char ch, int idx) {
   int len = strlen(str) + 1; // 还要复制字符串结束符
   if (len)

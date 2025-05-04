@@ -86,6 +86,7 @@ void handle_tab(char *buf, pl_readline_words_t words) {
     pl_readline_word_maker_add("exit", words, true, PL_COLOR_BLUE, ' ');
     pl_readline_word_maker_add("foo", words, false, PL_COLOR_YELLOW, ' ');
     pl_readline_word_maker_add("bar", words, false, PL_COLOR_MAGENTA, ' ');
+    pl_readline_word_maker_add("history", words, false, PL_COLOR_CYAN, ' ');
 
     int current = words->len;
     char *fake_dirs[] = {"/home","/usr","/home/racaos","/usr/local", NULL};
@@ -118,10 +119,12 @@ void handle_tab(char *buf, pl_readline_words_t words) {
 int main(void) {
     pl_readline_t pl =
         pl_readline_init(getch, putchar, flush, handle_tab);
+#if PL_ENABLE_HISTORY   
+    pl_readline_load_history(pl, ".pl_history");
+#endif
     printf("Type 'exit' to quit!\n");
     while (1) {
         const char *buffer = pl_readline(pl, "\033[1;32m[user@localhost]$\033[0m ");
-        printf("Your input: %s\n", buffer);
 
         // Check if it is a valid exit command
         int is_exit = 1;
@@ -138,8 +141,26 @@ int main(void) {
         } else {
             is_exit = 0;
         }
+        if (strcmp(buffer, "history") == 0) {
+            list_t node = pl->history;
+            // Find the last node
+            while (node && node->next) node = node->next;
+            // Write from last to first, skipping the empty last entry
+            int i = 1;
+            while (node) {
+                if (node->data && ((char*)node->data)[0] != '\0')
+                    printf("%d: %s\n", i++, (char*)node->data);
+                node = node->prev;
+            }
+            continue;
+        }
 
         if (is_exit) break;
+        printf("Your input: %s\n", buffer);
+
     }
+#if PL_ENABLE_HISTORY
+    pl_readline_save_history(pl, ".pl_history");
+#endif
     pl_readline_uninit(pl);
 }
