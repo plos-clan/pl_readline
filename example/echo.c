@@ -67,8 +67,18 @@ int getch(void) {
 
 void flush(void) { fflush(stdout); }
 
+// 统计`/`的个数
+static int count_slash(const char *buf) {
+    int count = 0;
+    while (*buf) {
+        if (*buf == '/') {
+            count++;
+        }
+        buf++;
+    }
+    return count;
+}
 void handle_tab(char *buf, pl_readline_words_t words) {
-    (void)buf;
     pl_readline_word_maker_add("ls", words, true, PL_COLOR_GREEN, ' ');
     pl_readline_word_maker_add("echo", words, true, PL_COLOR_BLUE, ' ');
     pl_readline_word_maker_add("cat", words, true, PL_COLOR_RED, ' ');
@@ -76,6 +86,33 @@ void handle_tab(char *buf, pl_readline_words_t words) {
     pl_readline_word_maker_add("exit", words, true, PL_COLOR_BLUE, ' ');
     pl_readline_word_maker_add("foo", words, false, PL_COLOR_YELLOW, ' ');
     pl_readline_word_maker_add("bar", words, false, PL_COLOR_MAGENTA, ' ');
+
+    int current = words->len;
+    char *fake_dirs[] = {"/home","/usr","/home/racaos","/usr/local", NULL};
+    // 匹配buf，看看有没有匹配的
+    for (int i = 0; fake_dirs[i] != NULL; i++) {
+      if (strncmp(buf, fake_dirs[i], strlen(buf)) == 0 &&
+          strlen(buf) != strlen(fake_dirs[i])) {
+            if(count_slash(fake_dirs[i]) == count_slash(buf)) {
+                pl_readline_word_maker_add(fake_dirs[i], words, false,
+                                            PL_COLOR_YELLOW, '/');
+            }
+        }
+    }
+    if (strcmp(buf, "/") == 0) {
+        // 只是为了让其着色
+        pl_readline_word_maker_add("/", words, false, PL_COLOR_YELLOW, ' ');
+    }
+    if (words->len - current == 0) {
+        for (int i = 0; fake_dirs[i] != NULL; i++) {
+            if (strcmp(buf, fake_dirs[i]) == 0) {
+                pl_readline_word_maker_add(fake_dirs[i], words, false,
+                                            PL_COLOR_YELLOW, '/');
+                break;
+            }
+        }
+    }
+
 }
 
 int main(void) {
