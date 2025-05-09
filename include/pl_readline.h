@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PL_READLINE_H
+#define PL_READLINE_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -100,3 +101,5 @@ void pl_readline_uninit(_self);
 void pl_readline_save_history(_self, const char *filename);
 void pl_readline_load_history(_self, const char *filename);
 #endif
+
+#endif /* PL_READLINE_H */

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PL_LIST_H
+#define PL_LIST_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -407,3 +408,5 @@ static size_t list_length(list_t list) {
         }                                                                                          \
         _match_;                                                                                   \
     })
+
+#endif /* PL_LIST_H */
