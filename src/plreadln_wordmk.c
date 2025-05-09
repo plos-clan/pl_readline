@@ -11,10 +11,10 @@
 // plreadln_wordmk.c: pl_readline word maker
 
 #include <assert.h>
-#include <pl_readline.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "pl_readline.h"
 
 pl_readline_words_t pl_readline_word_maker_init(void) {
     pl_readline_words_t words = malloc(sizeof(struct pl_readline_words));

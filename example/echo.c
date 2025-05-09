@@ -1,9 +1,9 @@
-#include <pl_readline.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <termio.h>
 #include <unistd.h>
+#include "pl_readline.h"
 
 int getch(void) {
     struct termios tm, tm_old;
@@ -96,7 +96,7 @@ void handle_tab(char *buf, pl_readline_words_t words) {
 
 int main(void) {
     pl_readline_t pl = pl_readline_init(getch, putchar, flush, handle_tab);
-#if PL_ENABLE_HISTORY
+#if PL_ENABLE_HISTORY_FILE
     pl_readline_load_history(pl, ".pl_history");
 #endif
     printf("Type 'exit' to quit!\n");
@@ -136,7 +136,7 @@ int main(void) {
         if (is_exit) break;
         printf("Your input: %s\n", buffer);
     }
-#if PL_ENABLE_HISTORY
+#if PL_ENABLE_HISTORY_FILE
     pl_readline_save_history(pl, ".pl_history");
 #endif
     pl_readline_uninit(pl);

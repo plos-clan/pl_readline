@@ -11,9 +11,9 @@
 // pl_readline_intellisense.c : Intellisense feature for pl_readline.
 
 #include <assert.h>
-#include <pl_readline.h>
 #include <stdio.h>
 #include <string.h>
+#include "pl_readline.h"
 
 // 向输入缓冲区插入字符
 static void insert_char(_self, char ch) {

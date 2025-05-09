@@ -1,10 +1,10 @@
 #pragma once
 
-#include <pl_list.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "pl_list.h"
 
 // Color definitions for terminal output
 #define PL_COLOR_RESET   0
@@ -36,7 +36,10 @@
 #define PL_READLINE_FAILED             -1
 #define PL_READLINE_NOT_FINISHED       1
 #define PL_READLINE_DEFAULT_BUFFER_LEN 32
-#define PL_ENABLE_HISTORY              1
+
+#ifndef PL_ENABLE_HISTORY_FILE
+#define PL_ENABLE_HISTORY_FILE         1
+#endif
 
 typedef struct pl_readline_word {
     char *word; // 词组
@@ -93,5 +96,7 @@ void pl_readline_word_maker_destroy(pl_readline_words_t words);
 void pl_readline_next_line(_self);
 int  pl_readline_handle_key(_self, int ch);
 void pl_readline_uninit(_self);
+#if PL_ENABLE_HISTORY_FILE
 void pl_readline_save_history(_self, const char *filename);
 void pl_readline_load_history(_self, const char *filename);
+#endif

@@ -10,12 +10,12 @@
 
 // plreadln.c: 实现pl_readline的核心功能
 #include <assert.h>
-#include <pl_readline.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "pl_readline.h"
 
 int pl_readline_add_history(_self, char *line) {
     list_prepend(self->history, strdup(line));
@@ -62,7 +62,7 @@ void pl_readline_uninit(_self) {
     free(self);
 }
 
-#if PL_ENABLE_HISTORY
+#if PL_ENABLE_HISTORY_FILE
 void pl_readline_save_history(_self, const char *filename) {
     FILE *fp = fopen(filename, "w");
     if (!fp) return;
