@@ -10,7 +10,6 @@
 
 // pl_readline_intellisense.c : Intellisense feature for pl_readline.
 
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include "pl_readline.h"
@@ -78,7 +77,6 @@ pl_readline_word pl_readline_intellisense(_self, pl_readline_words_t words) {
         buf[self->input_ptr]    = '\0';            // 加上结束符
         idx                     = self->input_ptr; // 索引
     } else {                                       // 列出模式
-        assert(self->intellisense_word != NULL);   // 这个指针一定不为空
         buf = self->intellisense_word;             // 重定向buf
         idx = strlen(buf);                         // 设置索引
     }

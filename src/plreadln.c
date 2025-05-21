@@ -9,7 +9,7 @@
 //
 
 // plreadln.c: 实现pl_readline的核心功能
-#include <assert.h>
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
