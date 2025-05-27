@@ -309,6 +309,13 @@ static bool pl_readline_handle_history(_self, int n) {
     self->ptr    = 0;                      // 光标移动到最左边
     self->length = 0;                      // 清空缓冲区长度
     memset(self->buffer, 0, self->maxlen); // 清空缓冲区
+    while(strlen(node->data) >= self->maxlen) {
+        self->maxlen *= 2; // 如果历史记录过长，扩大缓冲区
+        self->buffer     = realloc(self->buffer, self->maxlen);
+        self->input_buf  = realloc(self->input_buf, self->maxlen);
+        if (!self->buffer || !self->input_buf)
+          return false; // 分配失败
+    }
     strcpy(self->buffer, node->data);
     pl_readline_print(self, self->buffer); // 打印历史记录
     self->length = strlen(self->buffer);   // 更新缓冲区长度
