@@ -340,7 +340,7 @@ static bool pl_readline_handle_history(_self, int n) {
 }
 
 void pl_readline_insert_char_and_view(_self, char ch) {
-    if (self->length >= self->maxlen) {
+    if (self->length-1 >= self->maxlen) {
         self->maxlen               *= 2;
         self->buffer                = realloc(self->buffer, self->maxlen);
         self->input_buf             = realloc(self->input_buf, self->maxlen);
@@ -409,7 +409,7 @@ int pl_readline_handle_key(_self, int ch) {
             self->intellisense_word = NULL;
         }
     }
-    if (self->length >= self->maxlen) {
+    if (self->length - 1 >= self->maxlen) {
         self->maxlen               *= 2;
         self->buffer                = realloc(self->buffer, self->maxlen);
         self->input_buf             = realloc(self->input_buf, self->maxlen);
