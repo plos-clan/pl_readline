@@ -1,11 +1,11 @@
 #ifndef PL_READLINE_H
 #define PL_READLINE_H
 
+#include "pl_list.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include "pl_list.h"
 
 // Color definitions for terminal output
 #define PL_COLOR_RESET   0
@@ -39,7 +39,7 @@
 #define PL_READLINE_DEFAULT_BUFFER_LEN 32
 
 #ifndef PL_ENABLE_HISTORY_FILE
-#define PL_ENABLE_HISTORY_FILE         1
+#    define PL_ENABLE_HISTORY_FILE 1
 #endif
 
 typedef struct pl_readline_word {

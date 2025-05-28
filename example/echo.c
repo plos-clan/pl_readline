@@ -1,9 +1,9 @@
+#include "pl_readline.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <termio.h>
 #include <unistd.h>
-#include "pl_readline.h"
 
 int getch(void) {
     struct termios tm, tm_old;

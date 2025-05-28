@@ -10,12 +10,12 @@
 
 // plreadln.c: 实现pl_readline的核心功能
 
+#include "pl_readline.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "pl_readline.h"
 
 int pl_readline_add_history(_self, char *line) {
     list_prepend(self->history, strdup(line));
@@ -309,12 +309,11 @@ static bool pl_readline_handle_history(_self, int n) {
     self->ptr    = 0;                      // 光标移动到最左边
     self->length = 0;                      // 清空缓冲区长度
     memset(self->buffer, 0, self->maxlen); // 清空缓冲区
-    while(strlen(node->data) >= self->maxlen) {
-        self->maxlen *= 2; // 如果历史记录过长，扩大缓冲区
+    while (strlen(node->data) >= self->maxlen) {
+        self->maxlen    *= 2; // 如果历史记录过长，扩大缓冲区
         self->buffer     = realloc(self->buffer, self->maxlen);
         self->input_buf  = realloc(self->input_buf, self->maxlen);
-        if (!self->buffer || !self->input_buf)
-          return false; // 分配失败
+        if (!self->buffer || !self->input_buf) return false; // 分配失败
     }
     strcpy(self->buffer, node->data);
     pl_readline_print(self, self->buffer); // 打印历史记录
@@ -340,7 +339,7 @@ static bool pl_readline_handle_history(_self, int n) {
 }
 
 void pl_readline_insert_char_and_view(_self, char ch) {
-    if (self->length-1 >= self->maxlen) {
+    if (self->length - 1 >= self->maxlen) {
         self->maxlen               *= 2;
         self->buffer                = realloc(self->buffer, self->maxlen);
         self->input_buf             = realloc(self->input_buf, self->maxlen);

@@ -10,9 +10,9 @@
 
 // pl_readline_intellisense.c : Intellisense feature for pl_readline.
 
+#include "pl_readline.h"
 #include <stdio.h>
 #include <string.h>
-#include "pl_readline.h"
 
 // 向输入缓冲区插入字符
 static void insert_char(_self, char ch) {
@@ -82,7 +82,7 @@ pl_readline_word pl_readline_intellisense(_self, pl_readline_words_t words) {
     }
     self->pl_readline_get_words(buf, words); // 请求词库
     int  can_be_selected = 0;                // 可能的单词数
-    char sep = 0;                            // 用于分隔符
+    char sep             = 0;                // 用于分隔符
     for (size_t i = 0; i < words->len; i++) {
         if (strncmp(buf, words->words[i].word, idx) == 0 &&
             (is_first || !words->words[i].first)) {                     // 找到相同前缀的单词
