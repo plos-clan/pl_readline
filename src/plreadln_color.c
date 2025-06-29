@@ -51,7 +51,7 @@ void redisplay_buffer_with_colors(_self, int show_prompt) {
             max_words *= 2;                                                          \
             words = realloc(words, max_words * sizeof(char *));                      \
         }                                                                            \
-    }while(0)
+    } while(0)
     // Save original cursor position
     size_t original_ptr = self->ptr;
     size_t prompt_len   = 0;
