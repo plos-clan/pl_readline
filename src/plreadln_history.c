@@ -11,10 +11,7 @@
 // pl_readline_history.c : 历史记录功能
 
 #include "pl_readline.h"
-#include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 

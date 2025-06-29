@@ -11,12 +11,8 @@
 // plreadln.c: 实现pl_readline的核心功能
 
 #include "pl_readline.h"
-#include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
 
 pl_readline_t
 pl_readline_init(int (*pl_readline_hal_getch)(void), int (*pl_readline_hal_putch)(int ch),

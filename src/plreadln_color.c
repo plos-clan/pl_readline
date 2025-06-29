@@ -11,10 +11,7 @@
 // pl_readline_color: 着色
 
 #include "pl_readline.h"
-#include <stdbool.h>
-#include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
 
