@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+
 // Color definitions for terminal output
 #define PL_COLOR_RESET   0
 #define PL_COLOR_BLACK   30
@@ -41,6 +42,10 @@
 #ifndef PL_ENABLE_HISTORY_FILE
 #    define PL_ENABLE_HISTORY_FILE 1
 #endif
+#ifndef PL_ENABLE_COLOR_FIRST_WORD_ONLY
+#    define PL_ENABLE_COLOR_FIRST_WORD_ONLY 1
+#endif
+
 
 typedef struct pl_readline_word {
     char *word; // 词组

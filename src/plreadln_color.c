@@ -45,6 +45,13 @@ int get_command_color(_self, const char *word, int is_first_word) {
 
 // Function to redisplay the buffer with colorized commands
 void redisplay_buffer_with_colors(_self, int show_prompt) {
+#define EXPAND_BUFFER                                                                \
+    do {                                                                                \
+        if (word_count == max_words) {                                               \
+            max_words *= 2;                                                          \
+            words = realloc(words, max_words * sizeof(char *));                      \
+        }                                                                            \
+    }while(0)
     // Save original cursor position
     size_t original_ptr = self->ptr;
     size_t prompt_len   = 0;
@@ -96,7 +103,11 @@ void redisplay_buffer_with_colors(_self, int show_prompt) {
     }
 
     // Get all tokens and preserve spaces
-    char *words[256] = {0};
+    static char **words = NULL;
+    static int max_words = 256;
+    if(!words) {
+        words = malloc(max_words * sizeof(char *));
+    }
     int   word_count = 0;
     char *p          = buffer_copy;
     char *word_start = p;
@@ -106,32 +117,57 @@ void redisplay_buffer_with_colors(_self, int show_prompt) {
         if (*p == ' ') {
             // Found a space - terminate the current word
             *p = '\0';
-            if (p > word_start) { // Non-empty word
-                words[word_count++] = word_start;
+            EXPAND_BUFFER;
+            words[word_count++] = word_start;
+            if (word_start != buffer_copy ||
+                *buffer_copy != '\0') { // if the word is not empty
+                EXPAND_BUFFER;
+                words[word_count++] = p; // build a space word
             }
-            // Mark this as a space position
-            words[word_count++] = NULL; // NULL indicates a space
-            word_start          = p + 1;
+            // let the point p start from the next character which is not a
+            // space
+            p++; // we've set *p to '\0' so we need to move to the next character
+            while (*p == ' ' && *p != '\0') {
+              p++;
+            }
+            if(*p == '\0') {
+                // If we reached the end, break
+                word_start = p;
+                break;
+            }
+            word_start = p;
+
         }
         p++;
     }
 
     // Don't forget the last word if it's not empty
-    if (*word_start) { words[word_count++] = word_start; }
-
-    // Render all words and spaces with correct coloring
+    if (*word_start && word_start[0] != '\0') { EXPAND_BUFFER; words[word_count++] = word_start; }
     for (int i = 0; i < word_count; i++) {
-        if (words[i] == NULL) {
-            // This is a space
-            pl_readline_print(self, " ");
-            display_position++;
+      if (words[i][0] == '\0') {
+            // This is a space (or spaces)
+            int p;
+            // calculate the length of the space
+            if (i < word_count - 1) { // there is a next word
+                p = words[i + 1] - words[i];
+            } else { // or it's the last word in the buffer
+                // calculate the length with the end position of the buffer
+                p = (buffer_copy + buffer_len) - words[i];
+            }
+            for(int j = 0; j < p; j++) {
+                pl_readline_print(self, " ");
+                display_position++;
+            }
         } else {
             // This is a word
             // Check if this is the first word in the line
-            int is_first = (i == 0 || (i > 0 && words[i - 1] == NULL && i == 1));
-
+#if PL_ENABLE_COLOR_FIRST_WORD_ONLY
+            int is_first = (i == 0);
+#else
+            int is_first =
+            (i == 0 || (i > 0 && words[i - 1][0] == '\0' && i == 1));
+#endif
             int color = get_command_color(self, words[i], is_first);
-
             if (color != PL_COLOR_RESET) {
                 // Apply color
                 char color_str[16];

@@ -114,40 +114,6 @@ void pl_readline_insert_char_and_view(_self, char ch) {
     pl_readline_insert_char(self->buffer, ch, self->ptr++);
     self->length++;
 
-    // Check if we have a complete word that needs coloring (no longer needed - always redraw)
-    // Only checking word boundaries for completeness
-
-    // Only check for keyword completion when not pressing space/newline
-    if (ch != ' ' && ch != '\n') {
-        // Create a temporary buffer for the current word
-        char   current_word[256] = {0};
-        isize word_start        = self->ptr;
-        isize word_end          = self->ptr;
-
-        // Find the start of the current word (search backward until space)
-        while (word_start > 0 && self->buffer[word_start - 1] != ' ') {
-            word_start--;
-        }
-
-        // Find the end of the current word (search forward until space or null)
-        while (word_end < self->length && self->buffer[word_end] != ' ' &&
-               self->buffer[word_end] != '\0') {
-            word_end++;
-        }
-
-        // Copy the current word
-        if (word_start < word_end) {
-            strncpy(current_word, self->buffer + word_start, word_end - word_start);
-            current_word[word_end - word_start] = '\0';
-
-            // Check if this is the first word in the line
-            int is_first_word = (word_start == 0);
-
-            // We no longer need to set should_colorize flag since we always redraw
-            get_command_color(self, current_word, is_first_word);
-        }
-    }
-
     // Use colorized redisplay for all edits
     redisplay_buffer_with_colors(self, 0); // Don't show prompt during edit
 }
