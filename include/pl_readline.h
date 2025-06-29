@@ -56,8 +56,8 @@ typedef struct pl_readline_word {
 } pl_readline_word;
 
 typedef struct pl_readline_words {
-    size_t            len;     // 词组数量
-    size_t            max_len; // 词组最大数量
+    isize            len;     // 词组数量
+    isize            max_len; // 词组最大数量
     pl_readline_word *words;   // 词组列表
 } *pl_readline_words_t;
 
@@ -69,10 +69,10 @@ typedef struct pl_readline {
                                   pl_readline_words_t words); // 获取词组列表
     char  *buffer;                                            // 输入缓冲区
     char  *input_buf;                                         // 输入缓冲区（补全的前缀）
-    size_t ptr;                                               // 输入缓冲区指针
-    size_t input_ptr;                                         // 输入缓冲区（补全的前缀）指针
-    size_t maxlen;                                            // 缓冲区最大长度
-    size_t length;                                            // 输入缓冲区长度（已经输入的字符数）
+    isize ptr;                                               // 输入缓冲区指针
+    isize input_ptr;                                         // 输入缓冲区（补全的前缀）指针
+    isize maxlen;                                             // 缓冲区最大长度
+    isize length;                                             // 输入缓冲区长度（已经输入的字符数）
     list_t history;                                           // 历史记录列表
     int    history_idx;                                       // 历史记录指针
     char  *prompt;                                            // 提示符
@@ -80,6 +80,10 @@ typedef struct pl_readline {
     char  *intellisense_word;                                 // 智能补全词组
 } *pl_readline_t;
 
+void pl_readline_insert_char(char *str, char ch, int idx);
+void pl_readline_delete_char(char *str, int idx);
+int pl_readline_add_history(_self, char *line);
+int pl_readline_modify_history(_self);
 pl_readline_words_t pl_readline_word_maker_init(void);
 pl_readline_t       pl_readline_init(int (*pl_readline_hal_getch)(void),
                                      int (*pl_readline_hal_putch)(int ch),
@@ -97,8 +101,10 @@ void pl_readline_word_maker_destroy(pl_readline_words_t words);
 void pl_readline_next_line(_self);
 int  pl_readline_handle_key(_self, int ch);
 void pl_readline_uninit(_self);
+int get_command_color(_self, const char *word, int is_first_word);
+void redisplay_buffer_with_colors(_self, int show_prompt);
 #if PL_ENABLE_HISTORY_FILE
-void pl_readline_save_history(_self, const char *filename);
+    void pl_readline_save_history(_self, const char *filename);
 void pl_readline_load_history(_self, const char *filename);
 #endif
 

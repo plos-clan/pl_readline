@@ -190,7 +190,7 @@ static void *list_pop(list_t *list_p) {
     list_t list = list_tail(*list_p);
     if (*list_p == list) *list_p = list->prev;
     if (list->prev) list->prev->next = NULL;
-    list_t data = list->data;
+    list_t data = (list_t)list->data;
     free(list);
     return data;
 }

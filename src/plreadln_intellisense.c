@@ -31,14 +31,14 @@ static void insert_string(_self, char *str) {
 // 使用此函数需要记得free返回的指针
 static char *get_same_prefix(pl_readline_words_t words) {
     char  *prefix = NULL;
-    size_t len    = 0;
-    for (size_t i = 0; i < words->len; i++) {
+    isize len    = 0;
+    for (isize i = 0; i < words->len; i++) {
         if (prefix == NULL) {
             prefix = strdup(words->words[i].word);
             len    = strlen(prefix);
         } else {
-            size_t j = 0;
-            while (j < len && j < strlen(words->words[i].word) &&
+            isize j = 0;
+            while (j < len && (unsigned long)j < strlen(words->words[i].word) &&
                    prefix[j] == words->words[i].word[j]) {
                 j++;
             }
@@ -67,7 +67,7 @@ static bool check_is_first(_self) {
 pl_readline_word pl_readline_intellisense(_self, pl_readline_words_t words) {
     char  *buf;                             // 用户输入的缓冲区
     int    times = 0;                       // 输出补全词库的次数
-    size_t idx;                             // self->intellisense_word的索引
+    isize idx;                             // self->intellisense_word的索引
     int    flag     = 0;                    // 用户输入的词存不存在
     bool   is_first = check_is_first(self); // 是否是第一个单词
     if (self->intellisense_mode == false) { // 如果是这个模式，则我们需要插入些东西
@@ -83,12 +83,12 @@ pl_readline_word pl_readline_intellisense(_self, pl_readline_words_t words) {
     self->pl_readline_get_words(buf, words); // 请求词库
     int  can_be_selected = 0;                // 可能的单词数
     char sep             = 0;                // 用于分隔符
-    for (size_t i = 0; i < words->len; i++) {
+    for (isize i = 0; i < words->len; i++) {
         if (strncmp(buf, words->words[i].word, idx) == 0 &&
             (is_first || !words->words[i].first)) {                     // 找到相同前缀的单词
-            if (strlen(words->words[i].word) > self->input_ptr)         // 找到的单词比输入的长
+            if (strlen(words->words[i].word) > (unsigned long)self->input_ptr)         // 找到的单词比输入的长
                 can_be_selected++;                                      // 可能的单词数加一
-            if (strlen(words->words[i].word) == self->input_ptr) {      // 找到的单词和输入的一样长
+            if (strlen(words->words[i].word) == (unsigned long)self->input_ptr) {      // 找到的单词和输入的一样长
                 char *temp_buffer            = strdup(self->input_buf); // 临时缓冲区
                 temp_buffer[self->input_ptr] = '\0';                    // 加上结束符
                 if (strcmp(words->words[i].word, temp_buffer) == 0) {   // 找到的单词和输入一样
@@ -116,10 +116,10 @@ pl_readline_word pl_readline_intellisense(_self, pl_readline_words_t words) {
             goto NOTHING_INPUT;
         }
     }
-    for (size_t i = 0; i < words->len; i++) {
+    for (isize i = 0; i < words->len; i++) {
         if (strncmp(buf, words->words[i].word, idx) == 0 && (is_first || !words->words[i].first)) {
             // 和用户输入一样的单词有什么好必要补全的？
-            if (!self->intellisense_mode && strlen(words->words[i].word) == idx) {
+            if (!self->intellisense_mode && strlen(words->words[i].word) == (unsigned long)idx) {
                 // 直接下一个
                 continue;
             }

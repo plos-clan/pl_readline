@@ -11,7 +11,6 @@
 // plreadln_wordmk.c: pl_readline word maker
 
 #include "pl_readline.h"
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,7 +23,7 @@ pl_readline_words_t pl_readline_word_maker_init(void) {
 }
 
 void pl_readline_word_maker_destroy(pl_readline_words_t words) {
-    for (size_t i = 0; i < words->len; i++) {
+    for (isize i = 0; i < words->len; i++) {
         char *p = words->words[i].word;
         free(p);
     }
@@ -47,7 +46,7 @@ int pl_readline_word_maker_add(char *word, pl_readline_words_t words, bool is_fi
 }
 
 void pl_readline_word_maker_clear(pl_readline_words_t words) {
-    for (size_t i = 0; i < words->len; i++) {
+    for (isize i = 0; i < words->len; i++) {
         free(words->words[i].word);
     }
     words->len = 0;
