@@ -46,7 +46,7 @@ int get_command_color(_self, const char *word, int is_first_word) {
 // Function to redisplay the buffer with colorized commands
 void redisplay_buffer_with_colors(_self, int show_prompt) {
 #define EXPAND_BUFFER                                                                \
-    do {                                                                                \
+    do {                                                                             \
         if (word_count == max_words) {                                               \
             max_words *= 2;                                                          \
             words = realloc(words, max_words * sizeof(char *));                      \
