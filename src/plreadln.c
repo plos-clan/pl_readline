@@ -255,9 +255,11 @@ int pl_readline_handle_key(_self, int ch) {
         if (self->buffer[0] != '\0') { pl_readline_add_history(self, ""); }
         return PL_READLINE_SUCCESS;
     case PL_READLINE_KEY_TAB: { // 自动补全
+        // **NOTE**: words 在 pl_readline_intellisense 会被destory
         pl_readline_words_t words         = pl_readline_word_maker_init();
         pl_readline_word    word_seletion = pl_readline_intellisense(self, words);
         if (word_seletion.word) {
+            // pl_readline_intellisense_insert会释放word_seletion.word
             pl_readline_intellisense_insert(self, word_seletion);
             // Redisplay with colors after completion but don't show prompt
             redisplay_buffer_with_colors(self, 0);
