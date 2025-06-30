@@ -31,6 +31,10 @@ pl_readline_init(int (*pl_readline_hal_getch)(void), int (*pl_readline_hal_putch
     // 设置输入缓冲区
     plreadln->buffer    = malloc(plreadln->maxlen);
     plreadln->input_buf = malloc(plreadln->maxlen);
+
+    // 设置着色
+    plreadln->color_words = NULL;
+    plreadln->color_max_words = 256; // 默认最多256个词组
     if (!plreadln->buffer || !plreadln->input_buf) {
         pl_readline_uninit(plreadln);
         return NULL;
@@ -43,6 +47,9 @@ void pl_readline_uninit(_self) {
     list_free_with(self->history, free);
     free(self->buffer);
     free(self->input_buf);
+    if(self->color_words) {
+        free(self->color_words);
+    }
     free(self);
 }
 static void pl_readline_reset(_self, int p, int len) {

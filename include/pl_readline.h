@@ -67,15 +67,15 @@ typedef struct pl_readline_words {
 } *pl_readline_words_t;
 
 typedef struct pl_readline {
-    int (*pl_readline_hal_getch)(void);   // 输入函数
-    int (*pl_readline_hal_putch)(int ch); // 输出函数
-    void (*pl_readline_hal_flush)(void);  // 刷新函数
+    int (*pl_readline_hal_getch)(void);                       // 输入函数
+    int (*pl_readline_hal_putch)(int ch);                     // 输出函数
+    void (*pl_readline_hal_flush)(void);                      // 刷新函数
     void (*pl_readline_get_words)(char               *buf,
                                   pl_readline_words_t words); // 获取词组列表
     char  *buffer;                                            // 输入缓冲区
     char  *input_buf;                                         // 输入缓冲区（补全的前缀）
-    isize ptr;                                               // 输入缓冲区指针
-    isize input_ptr;                                         // 输入缓冲区（补全的前缀）指针
+    isize ptr;                                                // 输入缓冲区指针
+    isize input_ptr;                                          // 输入缓冲区（补全的前缀）指针
     isize maxlen;                                             // 缓冲区最大长度
     isize length;                                             // 输入缓冲区长度（已经输入的字符数）
     list_t history;                                           // 历史记录列表
@@ -83,6 +83,11 @@ typedef struct pl_readline {
     char  *prompt;                                            // 提示符
     bool   intellisense_mode;                                 // 智能补全模式
     char  *intellisense_word;                                 // 智能补全词组
+
+
+    // for color
+    char **color_words;                                       // 词组列表（用于判断并着色）
+    int color_max_words;
 } *pl_readline_t;
 
 void pl_readline_insert_char(char *str, char ch, int idx);

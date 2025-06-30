@@ -45,12 +45,12 @@ int get_command_color(_self, const char *word, int is_first_word) {
 
 // Function to redisplay the buffer with colorized commands
 void redisplay_buffer_with_colors(_self, int show_prompt) {
-#define EXPAND_BUFFER                                                                \
-    do {                                                                             \
-        if (word_count == max_words) {                                               \
-            max_words *= 2;                                                          \
-            words = realloc(words, max_words * sizeof(char *));                      \
-        }                                                                            \
+#define EXPAND_BUFFER                                                                                                    \
+    do {                                                                                                                 \
+        if (word_count == self->color_max_words) {                                                                             \
+            self->color_max_words *= 2;                                                                                  \
+            self->color_words = realloc(self->color_words, self->color_max_words * sizeof(char *));                      \
+        }                                                                                                                \
     } while(0)
     // Save original cursor position
     size_t original_ptr = self->ptr;
@@ -103,10 +103,9 @@ void redisplay_buffer_with_colors(_self, int show_prompt) {
     }
 
     // Get all tokens and preserve spaces
-    static char **words = NULL;
-    static int max_words = 256;
-    if(!words) {
-        words = malloc(max_words * sizeof(char *));
+
+    if(!self->color_words) {
+        self->color_words = malloc(self->color_max_words * sizeof(char *));
     }
     int   word_count = 0;
     char *p          = buffer_copy;
@@ -118,11 +117,11 @@ void redisplay_buffer_with_colors(_self, int show_prompt) {
             // Found a space - terminate the current word
             *p = '\0';
             EXPAND_BUFFER;
-            words[word_count++] = word_start;
+            self->color_words[word_count++] = word_start;
             if (word_start != buffer_copy ||
                 *buffer_copy != '\0') { // if the word is not empty
                 EXPAND_BUFFER;
-                words[word_count++] = p; // build a space word
+                self->color_words[word_count++] = p; // build a space word
             }
             // let the point p start from the next character which is not a
             // space
@@ -142,17 +141,17 @@ void redisplay_buffer_with_colors(_self, int show_prompt) {
     }
 
     // Don't forget the last word if it's not empty
-    if (*word_start && word_start[0] != '\0') { EXPAND_BUFFER; words[word_count++] = word_start; }
+    if (*word_start && word_start[0] != '\0') { EXPAND_BUFFER; self->color_words[word_count++] = word_start; }
     for (int i = 0; i < word_count; i++) {
-      if (words[i][0] == '\0') {
+      if (self->color_words[i][0] == '\0') {
             // This is a space (or spaces)
             int p;
             // calculate the length of the space
             if (i < word_count - 1) { // there is a next word
-                p = words[i + 1] - words[i];
+                p = self->color_words[i + 1] - self->color_words[i];
             } else { // or it's the last word in the buffer
                 // calculate the length with the end position of the buffer
-                p = (buffer_copy + buffer_len) - words[i];
+                p = (buffer_copy + buffer_len) - self->color_words[i];
             }
             for(int j = 0; j < p; j++) {
                 pl_readline_print(self, " ");
@@ -167,7 +166,7 @@ void redisplay_buffer_with_colors(_self, int show_prompt) {
             int is_first =
             (i == 0 || (i > 0 && words[i - 1][0] == '\0' && i == 1));
 #endif
-            int color = get_command_color(self, words[i], is_first);
+            int color = get_command_color(self, self->color_words[i], is_first);
             if (color != PL_COLOR_RESET) {
                 // Apply color
                 char color_str[16];
@@ -176,8 +175,8 @@ void redisplay_buffer_with_colors(_self, int show_prompt) {
             }
 
             // Print the word
-            pl_readline_print(self, words[i]);
-            display_position += strlen(words[i]);
+            pl_readline_print(self, self->color_words[i]);
+            display_position += strlen(self->color_words[i]);
 
             if (color != PL_COLOR_RESET) {
                 // Reset color
