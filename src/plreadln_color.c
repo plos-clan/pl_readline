@@ -164,7 +164,7 @@ void redisplay_buffer_with_colors(_self, int show_prompt) {
             int is_first = (i == 0);
 #else
             int is_first =
-            (i == 0 || (i > 0 && words[i - 1][0] == '\0' && i == 1));
+            (i == 0 || (i > 0 && self->color_words[i - 1][0] == '\0' && i == 1));
 #endif
             int color = get_command_color(self, self->color_words[i], is_first);
             if (color != PL_COLOR_RESET) {
