@@ -74,7 +74,7 @@ static bool pl_readline_handle_history(_self, int n) {
     self->ptr    = 0;                      // 光标移动到最左边
     self->length = 0;                      // 清空缓冲区长度
     memset(self->buffer, 0, self->maxlen); // 清空缓冲区
-    while (strlen(node->data) >= (unsigned long)self->maxlen) {
+    while (strlen(node->data) + 1 >= (unsigned long)self->maxlen) {
         self->maxlen *= 2; // 如果历史记录过长，扩大缓冲区
         self->buffer     = realloc(self->buffer, self->maxlen);
         self->input_buf  = realloc(self->input_buf, self->maxlen);
@@ -104,7 +104,7 @@ static bool pl_readline_handle_history(_self, int n) {
 }
 
 void pl_readline_insert_char_and_view(_self, char ch) {
-    if (self->length - 1 >= self->maxlen) {
+    if (self->length + 1 >= self->maxlen) {
         self->maxlen *= 2;
         self->buffer                = realloc(self->buffer, self->maxlen);
         self->input_buf             = realloc(self->input_buf, self->maxlen);
@@ -139,7 +139,7 @@ int pl_readline_handle_key(_self, int ch) {
             self->intellisense_word = NULL;
         }
     }
-    if (self->length - 1 >= self->maxlen) {
+    if (self->length + 1 >= self->maxlen) {
         self->maxlen *= 2;
         self->buffer                = realloc(self->buffer, self->maxlen);
         self->input_buf             = realloc(self->input_buf, self->maxlen);
