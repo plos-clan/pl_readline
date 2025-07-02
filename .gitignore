@@ -54,3 +54,6 @@ dkms.conf
 
 # History file
 .pl_history
+
+.cache/
+compile_commands.json
